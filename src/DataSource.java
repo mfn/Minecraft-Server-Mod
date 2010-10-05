@@ -263,9 +263,15 @@ public abstract class DataSource {
      * Returns true if there are any warps
      * @return true if there are warps
      */
-    public boolean hasWarps() {
+    public boolean hasWarps(Player player) {
         synchronized (warpLock) {
-            return warps.size() > 0;
+            int warpsCount = 0;
+            for (Warp warp : warps) {
+                if ((player.isInGroup(warp.Group) || warp.Group.equals("")) && !warp.Name.startsWith("_")) {
+                    warpsCount++;
+                }
+            }
+            return warpsCount > 0;
         }
     }
 
@@ -280,7 +286,7 @@ public abstract class DataSource {
 
         synchronized (warpLock) {
             for (Warp warp : warps) {
-                if (player.isInGroup(warp.Group) || warp.Group.equals("")) {
+                if ((player.isInGroup(warp.Group) || warp.Group.equals("")) && !warp.Name.startsWith("_")) {
                     builder.append(warp.Name).append(" ");
                 }
             }

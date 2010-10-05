@@ -363,7 +363,7 @@ public class id extends ej
                         if (entry.getKey().equals("/kit") && !etc.getDataSource().hasKits()) {
                             continue;
                         }
-                        if (entry.getKey().equals("/listwarps") && !etc.getDataSource().hasWarps()) {
+                        if (entry.getKey().equals("/listwarps") && !etc.getDataSource().hasWarps(getPlayer())) {
                             continue;
                         }
 
@@ -909,7 +909,7 @@ public class id extends ej
                 } else {
                     msg(Colors.Rose + "Player not found.");
                 }
-            } else if (split[0].equalsIgnoreCase("/listwarps") && etc.getDataSource().hasWarps()) {
+            } else if (split[0].equalsIgnoreCase("/listwarps") && etc.getDataSource().hasWarps(getPlayer())) {
                 if (split.length != 2 && split.length != 3) {
                     msg(Colors.Rose + "Available warps: " + Colors.White + etc.getDataSource().getWarpNames(getPlayer()));
                     return;
