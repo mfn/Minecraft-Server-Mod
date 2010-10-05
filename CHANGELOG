@@ -1,0 +1,119 @@
+Build 63 & 64
+
+    * Updated to v0.2.0_01
+
+Build 65
+
+    * Fixes /item and /kit
+
+Build 66
+
+    * Fixes /item
+
+Build 67
+
+    * Fixes GUI mode
+
+Build 68
+
+    * Fixes compass and /getpos
+
+Build 69
+
+    * Hopefully fixes homes and warps
+
+Build 70
+
+    * As an admin, you can type /item 1 -1 to give yourself an infinite supply
+    * of that item.
+
+Build 71
+
+    * Fixes build access (People with restrictions set to -1 can no longer
+    * build)
+
+Build 72
+
+    * Fixes mysql homes and warps
+
+Build 73
+
+    * Fixes auto-reloading
+
+Build 74
+
+    * Adds, at the moment, a limited plugin system and fixes reserve list
+
+Build 75
+
+    * Fixes some plugin stuff
+
+Build 76
+
+    * etc.getServer() works now
+
+Build 78 & 79
+
+    * People who are restricted from building also are restricted from chests
+    * and furnaces (they can't modify contents)
+
+Builds 80 & 81
+
+    * /removewarp added /home [player] added Command logging added (Change
+    * logging in server.properties to true. This will report every command used
+    * to server.log) Fixed error on startup
+
+Builds 82
+
+    * Updated to v0.2.1
+
+Builds 83
+
+    * Allows plugins to add commands to /help
+
+Builds 83-88
+
+    * Fixed IP bans Fixed block removal Added IP checking for users
+
+Builds 89-92
+
+    * Changed whitelist to be enabled through server.properties Added
+    * whitelist-message in server.properties
+
+Builds 93
+
+    * Changed plugin interface Added block stuff for plugins.  Returning a
+    * string for onLoginChecks will result in the player being kicked with the
+    * specified string as the reason
+
+Builds 94-100
+
+    * Various changes to the plugin interface Javadocs
+
+Builds 103
+
+    * Lots of refactoring regarding user/player classes.  Probably buggy as a
+    * result Player is reloaded on every login (as opposed to having to /reload
+    * to have the changes set)
+
+Builds 104
+
+    * Various bug fixes
+
+Builds 105
+
+    * Mob spawning with /spawnmob [Name] <Amount>
+
+Builds 106
+
+    * Reverted change regarding canBuild
+
+Builds 107
+
+    * Potentially fixed canBuild
+
+Builds 109
+
+    * Potentially fixed hasControlOver Merged commits by chrisinajar adding
+    * getSpawnLocation(), fixing a crash and adding onPlayerMove hook to the
+    * Plugin class.
