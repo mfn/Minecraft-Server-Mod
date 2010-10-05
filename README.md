@@ -13,6 +13,7 @@ minecraft_server.jar, then you can test your changes.
 Download
 --------
 You can download precompiled binaries from:
+
 * http://hey0.net/get.php?dl=serverbeta - BETA version (latest updated)
 * http://hey0.net/get.php?dl=serverstable - Stable version: OUTDATED!
 
