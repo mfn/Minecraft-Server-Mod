@@ -1,0 +1,28 @@
+<project name="build" basedir="." default="jar">
+    <path id="classpath">
+        <fileset dir="lib" includes="*.jar"/>
+    </path>
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+    <target name="server">
+        <get src="http://minecraft.net/download/minecraft_server.jar" dest="lib"
+            verbose="on" usetimestamp="true" skipexisting="true" retries="0"/>
+    </target>
+    <target name="compile" depends="server">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes" classpathref="classpath"
+            includeantruntime="false"/>
+    </target>
+    <target name="jar" depends="compile" description="Create JAR for the whole MOD">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/Minecraft_Mod_ocat.jar">
+            <fileset dir="build/classes"/>
+            <fileset dir="src" includes="*.java"/>
+            <manifest>
+                <attribute name="Main-Class" value="Main"/>
+                <attribute name="Class-Path" value="minecraft_server.jar mysql-connector-java-bin.jar plugins/"/>
+            </manifest>
+        </jar>
+    </target>
+</project>

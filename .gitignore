@@ -5,7 +5,6 @@ banned-ips.txt
 banned-players.txt
 bin
 build
-build.xml
 deploy.xml
 groups.txt
 items.txt
