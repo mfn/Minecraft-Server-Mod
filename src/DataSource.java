@@ -1,3 +1,6 @@
+
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -9,7 +12,7 @@ import net.minecraft.server.MinecraftServer;
  * @author James
  */
 public abstract class DataSource {
-    
+
     protected static final Logger log = Logger.getLogger("Minecraft");
     protected List<String> reserveList;
     protected List<String> whiteList;
@@ -17,9 +20,10 @@ public abstract class DataSource {
     protected List<Kit> kits;
     protected List<Warp> homes;
     protected List<Warp> warps;
+    protected List<Ban> bans;
     protected Map<String, Integer> items;
     protected MinecraftServer server;
-    protected final Object groupLock = new Object(), kitLock = new Object();
+    protected final Object groupLock = new Object(), kitLock = new Object(), banLock = new Object();
     protected final Object homeLock = new Object(), warpLock = new Object(), itemLock = new Object();
     protected final Object whiteListLock = new Object(), reserveListLock = new Object();
 
@@ -63,7 +67,10 @@ public abstract class DataSource {
      */
     abstract public void loadReserveList();
 
-    //abstract public void loadBanList();
+    /**
+     * Loads the ban list
+     */
+    abstract public void loadBanList();
 
     /**
      * Adds user to the list
@@ -310,6 +317,30 @@ public abstract class DataSource {
     }
 
     /**
+     * Returns the name of the item corresponding to the ID
+     * @param id id of item
+     * @return name of item
+     */
+    public String getItem(int id) {
+        synchronized (itemLock) {
+            for (String name : items.keySet()) {
+                if (items.get(name) == id) {
+                    return name;
+                }
+            }
+        }
+        return String.valueOf(id);
+    }
+
+    /**
+     * Returns an unmodifiable map of items
+     * @return unmodifiable map of items
+     */
+    public Map<String, Integer> getItems() {
+        return Collections.unmodifiableMap(items);
+    }
+
+    /**
      * Adds player to whitelist
      * @param name
      */
@@ -383,5 +414,45 @@ public abstract class DataSource {
             }
         }
         return false;
+    }
+
+    /**
+     * Adds or modifies specified ban
+     * @param ban Ban to add or modify
+     */
+    abstract public void modifyBan(Ban ban);
+
+    /**
+     * Checks to see if this player or IP is on the ban list
+     * @param player Player name
+     * @param ip IP Address
+     * @return true if either name or IP is on the ban list
+     */
+    public boolean isOnBanList(String player, String ip) {
+        synchronized (banLock) {
+            for (Ban ban : bans) {
+                if (ban.getName().equalsIgnoreCase(player) || ban.getIp().equalsIgnoreCase(ip)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Retrieves the ban details
+     * @param player Player name
+     * @param ip IP Address
+     * @return the ban
+     */
+    public Ban getBan(String player, String ip) {
+        synchronized (banLock) {
+            for (Ban ban : bans) {
+                if (ban.getName().equalsIgnoreCase(player) || ban.getIp().equalsIgnoreCase(ip)) {
+                    return ban;
+                }
+            }
+        }
+        return null;
     }
 }

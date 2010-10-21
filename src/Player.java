@@ -1,21 +1,28 @@
+import java.util.ArrayList;
 
 /**
  * Player.java - Interface for ea so mods don't have to update often.
  * @author James
  */
-public class Player {
+public class Player extends BaseEntity {
 
     private ea user;
     private int id = -1;
-    private String name = "";
     private String prefix = "";
-    private String[] commands = new String[] { "" };
-    private String[] groups = new String[] { "" };
-    private String[] ips = new String[] { "" };
+    private String[] commands = new String[]{""};
+    private ArrayList<String> groups = new ArrayList<String>();
+    private String[] ips = new String[]{""};
     private boolean ignoreRestrictions = false;
     private boolean admin = false;
     private boolean canModifyWorld = false;
     private boolean muted = false;
+    private Inventory inventory, craftingTable, equipment;
+
+    /**
+     * Creates a player interface
+     */
+    public Player() {
+    }
 
     /**
      * Kicks player with the specified reason
@@ -47,32 +54,37 @@ public class Player {
      * @param amount
      */
     public void giveItem(int itemId, int amount) {
-        int temp = amount;
-
-        do {
-            if (temp - 64 >= 64) {
-                user.a(new gp(itemId, 64));
-            } else {
-                user.a(new gp(itemId, temp));
-            }
-            temp -= 64;
-        } while (temp >= 64);
+        inventory.giveItem(itemId, amount);
+        inventory.updateInventory();
     }
 
     /**
-     * Teleports to the other player
-     * @param player
+     * Gives the player this item by dropping it in front of them
+     * @param item
      */
-    public void teleportTo(Player player) {
-        user.a.a(player.getX(), player.getY(), player.getZ(), player.getRotation(), player.getPitch());
+    public void giveItemDrop(Item item) {
+        giveItemDrop(item.getItemId(), item.getAmount());
     }
 
     /**
-     * Teleports to the provided location
-     * @param location
+     * Gives the player this item by dropping it in front of them
+     * @param itemId
+     * @param amount
      */
-    public void teleportTo(Location location) {
-        user.a.a(location.x, location.y, location.z, location.rotX, location.rotY);
+    public void giveItemDrop(int itemId, int amount) {
+        if (amount == -1) {
+            user.a(new gp(itemId, 255));
+        } else {
+            int temp = amount;
+            do {
+                if (temp - 64 >= 64) {
+                    user.a(new gp(itemId, 64));
+                } else {
+                    user.a(new gp(itemId, temp));
+                }
+                temp -= 64;
+            } while (temp > 0);
+        }
     }
 
     /**
@@ -183,13 +195,15 @@ public class Player {
     public boolean hasControlOver(Player player) {
         boolean isInGroup = false;
 
-        if (player.hasNoGroups())
+        if (player.hasNoGroups()) {
             return true;
+        }
         for (String str : player.getGroups()) {
-            if (isInGroup(str))
+            if (isInGroup(str)) {
                 isInGroup = true;
-            else
+            } else {
                 continue;
+            }
             break;
         }
 
@@ -224,86 +238,6 @@ public class Player {
      */
     public String getIP() {
         return user.a.b.b().toString().split(":")[0].substring(1);
-    }
-
-    /**
-     * Returns the player's X
-     * @return
-     */
-    public double getX() {
-        return user.l;
-    }
-
-    /**
-     * Sets the player's X
-     * @param x
-     */
-    public void setX(double x) {
-        user.a.a(x, getY(), getZ(), getRotation(), getPitch());
-    }
-
-    /**
-     * Returns the player's Y
-     * @return
-     */
-    public double getY() {
-        return user.m;
-    }
-
-    /**
-     * Sets the player's Y
-     * @param y
-     */
-    public void setY(double y) {
-        user.a.a(getX(), y, getZ(), getRotation(), getPitch());
-    }
-
-    /**
-     * Returns the player's Z
-     * @return
-     */
-    public double getZ() {
-        return user.n;
-    }
-
-    /**
-     * Sets the player's Z
-     * @param z
-     */
-    public void setZ(double z) {
-        user.a.a(getX(), getY(), z, getRotation(), getPitch());
-    }
-
-    /**
-     * Returns the player's pitch
-     * @return
-     */
-    public float getPitch() {
-        return user.s;
-    }
-
-    /**
-     * Sets the player's pitch
-     * @param pitch
-     */
-    public void setPitch(float pitch) {
-        user.a.a(getX(), getY(), getZ(), getRotation(), pitch);
-    }
-
-    /**
-     * Returns the player's rotation
-     * @return
-     */
-    public float getRotation() {
-        return user.r;
-    }
-
-    /**
-     * Sets the player's rotation
-     * @param rotation
-     */
-    public void setRotation(float rotation) {
-        user.a.a(getX(), getY(), getZ(), rotation, getPitch());
     }
 
     /**
@@ -360,9 +294,11 @@ public class Player {
             }
         }
 
-        if (hasNoGroups())
-            if (etc.getInstance().getDefaultGroup().CanModifyWorld)
+        if (hasNoGroups()) {
+            if (etc.getInstance().getDefaultGroup().CanModifyWorld) {
                 return true;
+            }
+        }
 
         return false;
     }
@@ -404,7 +340,9 @@ public class Player {
      * @return
      */
     public String[] getGroups() {
-        return groups;
+	String[] strGroups = new String[groups.size()];
+	groups.toArray(strGroups);
+        return strGroups;
     }
 
     /**
@@ -412,7 +350,18 @@ public class Player {
      * @param groups
      */
     public void setGroups(String[] groups) {
-        this.groups = groups;
+        this.groups.clear();
+        for (String s: groups)
+            if (s.length() > 0)
+                this.groups.add(s);
+    }
+
+    /**
+     * Adds the player to the specified group
+     * @param group group to add player to
+     */
+    public void addGroup(String group) {
+        this.groups.add(group);
     }
 
     /**
@@ -494,9 +443,8 @@ public class Player {
                 return "§" + prefix;
             }
         }
-        if(groups.length > 0)
-        {
-            Group group = etc.getDataSource().getGroup(groups[0]);
+        if (groups.size() > 0) {
+            Group group = etc.getDataSource().getGroup(groups.get(0));
             if (group != null) {
                 return "§" + group.Prefix;
             }
@@ -535,7 +483,25 @@ public class Player {
      */
     public void setUser(ea user) {
         this.user = user;
+        this.entity = user;
+        this.inventory = new Inventory(this, Inventory.Type.Inventory);
+        this.craftingTable = new Inventory(this, Inventory.Type.CraftingTable);
+        this.equipment = new Inventory(this, Inventory.Type.Equipment);
     }
+
+    public void teleportTo(double x, double y, double z, float rotation, float pitch) {
+        user.a.a(x, y, z, rotation, pitch);
+    }
+
+    /**
+     * This doesn't work and only screws things up.
+     * @param health
+     */
+    public void setHealth(int health) {
+        //Do nothing. Setting health fucks shit up on the server.
+    }
+
+
 
     /**
      * Returns true if the player is muted
@@ -554,11 +520,49 @@ public class Player {
         return muted;
     }
 
+    /**
+     * Checks to see if this player is in any groups
+     * @return true if this player is in any group
+     */
     public boolean hasNoGroups() {
-        if (groups.length == 0)
+        if (groups.isEmpty()) {
             return true;
-        if (groups.length == 1)
-            return groups[0].equals("");
+        }
+        if (groups.size() == 1) {
+            return groups.get(0).equals("");
+        }
         return false;
+    }
+
+    /**
+     * Returns item id in player's hand
+     * @return
+     */
+    public int getItemInHand() {
+        return user.a.getItemInHand();
+    }
+
+    /**
+     * Returns this player's inventory
+     * @return inventory
+     */
+    public Inventory getInventory() {
+        return inventory;
+    }
+
+    /**
+     * Returns this player's crafting table (2x2)
+     * @return inventory
+     */
+    public Inventory getCraftingTable() {
+        return craftingTable;
+    }
+
+    /**
+     * Returns this player's equipment
+     * @return inventory
+     */
+    public Inventory getEquipment() {
+        return equipment;
     }
 }

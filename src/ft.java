@@ -27,6 +27,7 @@ public class ft {
     public ft(MinecraftServer paramMinecraftServer) {
         etc.setServer(paramMinecraftServer);
         etc.getInstance().loadData();
+        a.info("Hey0 Server Mod Build " + etc.getInstance().getVersion());
         this.c = paramMinecraftServer;
         this.i = paramMinecraftServer.a("banned-players.txt");
         this.j = paramMinecraftServer.a("banned-ips.txt");
@@ -64,7 +65,7 @@ public class ft {
         for (String str : etc.getInstance().getMotd()) {
             paramea.a.b(new ba(str));
         }
-        etc.getInstance().getLoader().callHook(PluginLoader.Hook.LOGIN, new Object[]{paramea});
+        etc.getLoader().callHook(PluginLoader.Hook.LOGIN, new Object[]{paramea});
     }
 
     public void b(ea paramea) {
@@ -133,7 +134,7 @@ public class ft {
             }
         }
         
-        Object obj = etc.getInstance().getLoader().callHook(PluginLoader.Hook.LOGINCHECK, new Object[]{paramString1});
+        Object obj = etc.getLoader().callHook(PluginLoader.Hook.LOGINCHECK, new Object[]{paramString1});
         if (obj instanceof String) {
             String result = (String)obj;
             if (result != null && !result.equals("")) {

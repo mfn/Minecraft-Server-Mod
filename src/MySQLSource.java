@@ -45,6 +45,7 @@ public class MySQLSource extends DataSource {
         loadItems();
         loadWhitelist();
         loadReserveList();
+        //loadBanList();
     }
 
     public void loadGroups() {
@@ -68,6 +69,9 @@ public class MySQLSource extends DataSource {
                     group.InheritedGroups = rs.getString("inheritedgroups").split(",");
                     group.Name = rs.getString("name");
                     group.Prefix = rs.getString("prefix");
+                    if (group.InheritedGroups.length == 1)
+                        if (group.InheritedGroups[0].equalsIgnoreCase(group.Name))
+                            group.InheritedGroups = new String[] { "" };
                     groups.add(group);
                 }
             } catch (SQLException ex) {
@@ -639,6 +643,9 @@ public class MySQLSource extends DataSource {
 
     //Whitelist
     public void addToWhitelist(String name) {
+        if (isUserOnWhitelist(name))
+            return;
+        
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -665,6 +672,9 @@ public class MySQLSource extends DataSource {
     }
 
     public void removeFromWhitelist(String name) {
+        if (!isUserOnWhitelist(name))
+            return;
+        
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -692,6 +702,9 @@ public class MySQLSource extends DataSource {
 
     //Reservelist
     public void addToReserveList(String name) {
+        if (isUserOnReserveList(name))
+            return;
+        
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -718,6 +731,9 @@ public class MySQLSource extends DataSource {
     }
 
     public void removeFromReserveList(String name) {
+        if (!isUserOnReserveList(name))
+            return;
+        
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -780,5 +796,46 @@ public class MySQLSource extends DataSource {
             }
         }
         return player;
+    }
+    
+    public void loadBanList() {
+        synchronized (banLock) {
+            bans = new ArrayList<Ban>();
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            try {
+                conn = getConnection();
+                ps = conn.prepareStatement("SELECT * FROM bans");
+                rs = ps.executeQuery();
+                while (rs.next()) {
+                    Ban ban = new Ban();
+                    ban.setName(rs.getString("name"));
+                    ban.setIp(rs.getString("ip"));
+                    ban.setReason(rs.getString("reason"));
+                    ban.setTimestamp(rs.getInt("length"));
+                    bans.add(ban);
+                }
+            } catch (SQLException ex) {
+                log.log(Level.SEVERE, "Unable to retreive bans from ban table", ex);
+            } finally {
+                try {
+                    if (ps != null) {
+                        ps.close();
+                    }
+                    if (rs != null) {
+                        rs.close();
+                    }
+                    if (conn != null) {
+                        conn.close();
+                    }
+                } catch (SQLException ex) {
+                }
+            }
+        }
+    }
+    
+    public void modifyBan(Ban ban) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
