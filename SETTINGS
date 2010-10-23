@@ -1,0 +1,26 @@
+Settings
+
+    * data-source - Can be flatfile or mysql. If set to mysql, it will generate a mysql.properties for you to configure.
+    * alloweditems - A whitelist of allowed items for use in /item
+    * disalloweditems - A blacklist of disallowed items for use in /item
+    * itemspawnblacklist - A blacklist of items that can't be spawned (IE. Things like bedrock, lava, water, etc). Add IDs seperated by a comma.
+    * motd - The motd of the server. Seperate new lines with @
+    * max-players - The player limit. Defaults to 20.
+    * save-homes - If set to false it will no longer save homes.
+    * itemstxtlocation - The location of items.txt
+    * homelocation - The location of homes.txt
+    * kitstxtlocation - The location of kits.txt
+    * admintxtlocation - The location of users.txt (Was admins.txt before)
+    * homelocation - Location to save homes
+    * warplocation - Location to save warps
+    * group-txt-location - Location to read groups from
+    * whitelist-txt-location - Location to read/write the player whitelist
+    * reservelist-txt-location - Location to read/write the reserve list
+    * spawn-protection-size - Sets the spawn protection size
+    * reload-interval - The interval that the server reloads configuration files
+    * save-interval - The interval that the server save-alls (Default half-hour)
+    * logging - Enabling this will cause every command used to be logged to the logs.
+
+TrackPlayerPlugin
+
+    * trackplayer-updateinterval - Time in ms to update the database with the player locations

@@ -117,3 +117,68 @@ Builds 109
     * Potentially fixed hasControlOver Merged commits by chrisinajar adding
     * getSpawnLocation(), fixing a crash and adding onPlayerMove hook to the
     * Plugin class.
+
+Builds 110
+
+    * Added reloadPlayer to ea
+
+Builds 111
+
+    * Changed it to only check build rights and commands of the default group if you aren't in a group.
+
+Builds 112
+
+    * Fixed several things related to default groups.
+    * IP check on login working again.
+    * users.txt is created on startup now rather than login.
+    * Fixed some things with flatfiles.
+
+Builds 113
+
+    * Added onServerCommand to plugin class.
+    * Merged commits by chrisinajar adding onArmSwing hook.
+    * FIXED IP check.
+    * Fixed kick/ban reasons for plugins.
+
+Build 115
+
+    * Inventories can now be modified by plugins
+    * /cleaninventory [player] command added
+    * Player.giveItem now gives the item into the player's inventory first. So /item, /kit, etc. now all put the items into your inventory and then drop the rest if your inventory is full.
+    * Chests, Signs and Furnaces can be modified.
+    * HitBlox by Ho0ber added. Allows plugins to find out what block the player's looking at.
+    * New Plugin system. Now uses listeners. Completely backwards compatible at the moment.
+    * Fixed getItemInHand()
+    * Fixed crash if you typed " " into the console (thanks chrisinajar).
+    * Added onSendComplexBlock (which will allow you to have locks for chests), onComplexBlockChange and onInventoryChange
+    * Small change so people moving from flat files to mysql will have an easier time.
+
+Build 116
+
+    * Added plugin commands to console commands.
+    * Now only admins can clear other people's inventories
+    * Added getX,Y,Z to complex blocks.
+
+Build 117
+
+    * Added block.getStatus().
+    * Added etc.showUnknownCommand()
+    * Added DataSource.getItem(int id) and DataSource.getItems().
+    * Fixed /tp and /tphere player checks.
+    * Fixed ItemArray.removeItem
+
+Build 118
+
+    * Added Mob.getX/Y/Z/Health, Mob.setX/Y/Z/Health
+    * Validation for /spawnmob and /setwarp
+
+Build 119
+
+    * Added block data.
+    * Added mob.getName() and mob.dropLoot() (Automagically drops loot if health is set to 0).
+    * Added server version stuff. (/version in-game version in-console).
+    * Removed backwards compatibility for old plugins.
+
+Build 121
+
+    * Some hitbloc and coord fixes

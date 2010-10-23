@@ -1,0 +1,14 @@
+Features
+
+    * Colored, group-specific names that can be changed in server.properties
+    * Lots of commands (I'll go into specific below)
+    * Kits, and can be group-specific so you can have builder-specific kits.
+    * Player whitelist
+    * Adjustable player limit
+    * MOTD
+    * Usergroups (default, builder, mod and admin)
+    * Ability to change the position of /home
+    * Several administration commands like /ban, /banip, /unban, /kick, etc.
+    * Llama's mod integration (/lighter). Download llama's mod from here
+    * Configurable item spawn blacklist
+    * And much more...
