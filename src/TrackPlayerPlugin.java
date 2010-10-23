@@ -14,59 +14,70 @@ import java.util.logging.Logger;
  * Currently only supports Mysql as storage.
  * 
  * @author mfn
- *
+ * 
  */
 public class TrackPlayerPlugin extends Plugin {
 	private static final Logger log = Logger.getLogger("Minecraft");
 	/**
-	 * The interval in ms to write the currently known player locations to the database.
+	 * The interval in ms to write the currently known player locations to the
+	 * database.
 	 */
 	private int updateInterval; // ms
 	/**
-	 * Store player id/location until updateInterval went by and flush to datasource
+	 * Store player id/location until updateInterval went by and flush to
+	 * datasource
 	 */
 	private Hashtable<Integer, Location> playerLocations;
+	private Listener listener;
 
-	public TrackPlayerPlugin() {
-		setName("TrackPlayer v0.1 by mfn");
+	@Override
+	public void initialize() {
 		PropertiesFile serverProps = new PropertiesFile("server.properties");
 		// set default to update database every 5 seconds
 		updateInterval = serverProps.getInt("trackplayer-updateinterval", 5000);
 		playerLocations = new Hashtable<Integer, Location>();
-		new Thread(new Timer(updateInterval, new Mysql(), playerLocations)).start();
+		new Thread(new Timer(updateInterval, new Mysql(), playerLocations))
+				.start();
+		etc.getLoader().addListener(PluginLoader.Hook.PLAYER_MOVE, listener,
+				this, PluginListener.Priority.MEDIUM);
 	}
 
-	/**
-	 * Act on player movement
-	 */
-	public void onPlayerMove(Player player, Location from, Location to) {
-		if (!isEnabled()) {
-			return;
-		}
-		if (player.getSqlId() == -1) {
-			// only work with players already in the database
-			return;
-		}		
-		playerLocations.put(player.getSqlId(), to);
-	}
-
-	public void enable() {		
+	public void enable() {
 		log.log(Level.INFO, "Plugin " + getName() + " enabled");
+		listener = new Listener();
 	}
 
 	public void disable() {
 		log.log(Level.INFO, "Plugin " + getName() + " disabled");
 	}
-	
+
+	private class Listener extends PluginListener {
+		@Override
+		/**
+		 * Act on player movement
+		 */
+		public void onPlayerMove(Player player, Location from, Location to) {
+			if (player.getSqlId() == -1) {
+				// only work with players already in the database
+				return;
+			}
+			playerLocations.put(player.getSqlId(), to);
+		}
+
+	}
+
 	private class Timer implements Runnable {
 		private int updateInterval;
 		private Mysql datasource;
 		private Hashtable<Integer, Location> playerLocations;
-		private Timer(int updateInterval, Mysql datasource, Hashtable<Integer, Location> playerLocations) {
+
+		private Timer(int updateInterval, Mysql datasource,
+				Hashtable<Integer, Location> playerLocations) {
 			this.updateInterval = updateInterval;
 			this.datasource = datasource;
 			this.playerLocations = playerLocations;
 		}
+
 		@Override
 		public void run() {
 			while (true) {
@@ -74,11 +85,10 @@ public class TrackPlayerPlugin extends Plugin {
 					Thread.sleep(updateInterval);
 					datasource.updatePlayerLocations(playerLocations);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 					break;
 				}
-				
+
 			}
 		}
 	}
