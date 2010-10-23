@@ -67,7 +67,7 @@ Commands
 * /home - Teleports you home
 * /sethome - Sets your home
 * /setspawn - Sets the spawn point to your position.
-* /me [Message] -* hey0 says hi!
+* /me [Message] - * hey0 says hi!
 * /msg [Player] [Message] - Sends a message to player
 * /spawn - Teleports you to spawn
 * /warp [Warp] - Warps to the specified warp.
@@ -104,3 +104,6 @@ Settings
 * reload-interval - The interval that the server reloads configuration files
 * save-interval - The interval that the server save-alls (Default half-hour)
 * logging - Enabling this will cause every command used to be logged to the logs.
+
+TrackPlayerPlugin
+* trackplayer-updateinterval - Time in ms to update database with player location changes.
