@@ -24,7 +24,7 @@ public class je extends ey implements eu {
     private boolean j = true;
     private hj k = null;
     private List<String> onlyOneUseKits = new ArrayList<String>();
-    private Pattern badChatPattern = Pattern.compile("[^ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\]^_'abcdefghijklmnopqrstuvwxyz{|}~\u2302\u00C7\u00FC\u00E9\u00E2\u00E4\u00E0\u00E5\u00E7\u00EA\u00EB\u00E8\u00EF\u00EE\u00EC\u00C4\u00C5\u00C9\u00E6\u00C6\u00F4\u00F6\u00F2\u00FB\u00F9\u00FF\u00D6\u00DC\u00F8\u00A3\u00D8\u00D7\u0192\u00E1\u00ED\u00F3\u00FA\u00F1\u00D1\u00AA\u00BA\u00BF\u00AE\u00AC\u00BD\u00BC\u00A1\u00AB\u00BB]");
+    private Pattern badChatPattern = Pattern.compile("[^ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\\\\\]^_'abcdefghijklmnopqrstuvwxyz{|}~\u2302\u00C7\u00FC\u00E9\u00E2\u00E4\u00E0\u00E5\u00E7\u00EA\u00EB\u00E8\u00EF\u00EE\u00EC\u00C4\u00C5\u00C9\u00E6\u00C6\u00F4\u00F6\u00F2\u00FB\u00F9\u00FF\u00D6\u00DC\u00F8\u00A3\u00D8\u00D7\u0192\u00E1\u00ED\u00F3\u00FA\u00F1\u00D1\u00AA\u00BA\u00BF\u00AE\u00AC\u00BD\u00BC\u00A1\u00AB\u00BB]");
 
     public je(MinecraftServer paramMinecraftServer, bh parambh, ep paramep) {
         this.d = paramMinecraftServer;
@@ -207,7 +207,7 @@ public class je extends ey implements eu {
     // Destroy function
     public void a(hz paramhz) {
         this.e.ak.a[this.e.ak.d] = this.k;
-        boolean bool = this.d.e.B = this.d.f.g(this.e.ar) || getPlayer().getAdmin();
+        boolean bool = this.d.e.B = (this.d.f.g(this.e.ar) || getPlayer().isAdmin());
         int m = 0;
         if (paramhz.e == 0) {
             m = 1;
@@ -238,7 +238,6 @@ public class je extends ey implements eu {
             i5 = i4;
         }
         if (paramhz.e == 0) {
-
             if (!getPlayer().canBuild()) {
                 return;
             }
@@ -256,14 +255,12 @@ public class je extends ey implements eu {
             }
 
         } else if (paramhz.e == 2) {
-
             Block block = etc.getServer().getBlockAt(n, i1, i2);
             block.setStatus(2); // Stopped digging
             etc.getLoader().callHook(PluginLoader.Hook.BLOCK_DESTROYED, new Object[]{e, block});
 
             this.e.c.a();
         } else if (paramhz.e == 1) {
-
             if (!getPlayer().canBuild()) {
                 return;
             }
@@ -276,7 +273,6 @@ public class je extends ey implements eu {
                 }
             }
         } else if (paramhz.e == 3) {
-
             Block block = new Block(type, x, y, z);
             block.setStatus(3);
             etc.getLoader().callHook(PluginLoader.Hook.BLOCK_DESTROYED, new Object[]{e, block});
@@ -293,7 +289,7 @@ public class je extends ey implements eu {
     }
 
     public void a(fx paramfx) {
-        boolean bool = this.d.e.B = this.d.f.g(getPlayer().getName()) || getPlayer().isAdmin();
+        boolean bool = this.d.e.B = (this.d.f.g(getPlayer().getName()) || getPlayer().isAdmin());
         if (paramfx.e == 255) {
             hj localhj1 = paramfx.a >= 0 ? new hj(paramfx.a) : null;
             this.e.c.a(this.e, this.d.e, localhj1);
@@ -327,7 +323,7 @@ public class je extends ey implements eu {
                 Block blockClicked = new Block(etc.getServer().getBlockIdAt(m, n, i1), m, n, i1);
                 blockClicked.setFaceClicked(Block.Face.fromId(paramfx.e));
 
-                if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.BLOCK_CREATED, new Object[]{e, blockPlaced, blockClicked, paramfx.a}) || getPlayer().getAdmin()) {
+                if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.BLOCK_CREATED, new Object[]{e, blockPlaced, blockClicked, paramfx.a})) {
                     if (localhj != null) {
                         if (!etc.getInstance().isOnItemBlacklist(localhj.c) || bool) {
                             this.e.c.a(this.e, this.d.e, localhj, m, n, i1, i2);

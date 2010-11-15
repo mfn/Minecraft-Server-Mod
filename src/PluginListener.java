@@ -280,4 +280,50 @@ public abstract class PluginListener {
     public boolean onSendComplexBlock(Player player, ComplexBlock block) {
         return false;
     }
+
+    /*
+     * Called when either a lava block or a lighter tryes to light something on fire.
+     * block status depends on the light source:
+     * 1 = lava.
+     * 2 = lighter (flint + steel).
+     * 3 = spread (dynamic spreading of fire).
+     * @param block
+     *          block that the fire wants to spawn in.
+     *
+     * @return true if you dont want the fire to ignite.
+     */
+    public boolean onIgnite(Block block, Player player) {
+        return false;
+    }
+
+    /*
+     * Called when a dynamite block or a creeper is triggerd.
+     * block status depends on explosive compound:
+     * 1 = dynamite.
+     * 2 = creeper.
+     * @param block
+     *          dynamite block/creeper location block.
+     *
+     * @return true if you dont the block to explode.
+     */
+    public boolean onExplode(Block block) {
+        return false;
+    }
+
+    /*
+     * Called when lava wants to flow to a certain block.
+     * block status represents the type that wants to flow.
+     * (10 & 11 for lava and 8 & 9 for water)
+     * 
+     * @param block
+     *          the block beneath where the substance wants to flow to.
+     *
+     * for example:
+     * lava want to flow to block x,y,z then the param block is the block x,y-1,z.
+     *
+     * @return true if you dont want the substance to flow.
+     */
+    public boolean onFlow(Block block) {
+        return false;
+    }
 }
