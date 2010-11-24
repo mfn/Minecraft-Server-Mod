@@ -126,7 +126,7 @@ public class Player extends BaseEntity {
                         if (entry.getKey().equals("/kit") && !etc.getDataSource().hasKits()) {
                             continue;
                         }
-                        if (entry.getKey().equals("/listwarps") && !etc.getDataSource().hasWarps()) {
+                        if (entry.getKey().equals("/listwarps") && !etc.getDataSource().hasWarps(this)) {
                             continue;
                         }
 
@@ -743,7 +743,7 @@ public class Player extends BaseEntity {
                 } else {
                     sendMessage(Colors.Rose + "Player not found.");
                 }
-            } else if (split[0].equalsIgnoreCase("/listwarps") && etc.getDataSource().hasWarps()) {
+            } else if (split[0].equalsIgnoreCase("/listwarps") && etc.getDataSource().hasWarps(this)) {
                 if (split.length != 2 && split.length != 3) {
                     sendMessage(Colors.Rose + "Available warps: " + Colors.White + etc.getDataSource().getWarpNames(this));
                     return;

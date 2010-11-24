@@ -214,17 +214,18 @@ public class PluginLoader {
     private void load(String fileName) {
         try {
             File file = new File("plugins/" + fileName + ".jar");
-            if (!file.exists()) {
-                log.log(Level.SEVERE, "Failed to find plugin file: plugins/" + fileName + ".jar. Please ensure the file exists");
-                return;
+            Class c;
+            if (file.exists()) {
+	            URLClassLoader child = null;
+	            try {
+	                child = new MyClassLoader(new URL[]{file.toURI().toURL()}, Thread.currentThread().getContextClassLoader());
+	            } catch (MalformedURLException ex) {
+	                log.log(Level.SEVERE, "Exception while loading class", ex);
+	            }
+	            c = child.loadClass(fileName);
+            } else {
+            	c = Thread.currentThread().getContextClassLoader().loadClass(fileName);
             }
-            URLClassLoader child = null;
-            try {
-                child = new MyClassLoader(new URL[]{file.toURI().toURL()}, Thread.currentThread().getContextClassLoader());
-            } catch (MalformedURLException ex) {
-                log.log(Level.SEVERE, "Exception while loading class", ex);
-            }
-            Class c = child.loadClass(fileName);
 
             Plugin plugin = (Plugin) c.newInstance();
             plugin.setName(fileName);
