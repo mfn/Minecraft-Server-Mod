@@ -1,12 +1,13 @@
+
 import java.util.Random;
 
 public class gj extends dx {
+
     public hl a;
     private int e;
     public int b = 0;
     public int c;
     private int f = 5;
-
     public float d = (float) (Math.random() * 3.141592653589793D * 2.0D);
 
     public gj(eo parameo, double paramDouble1, double paramDouble2, double paramDouble3, hl paramhl) {
@@ -165,6 +166,7 @@ public class gj extends dx {
 
     @Override
     public void a(v paramv) {
+        // hMod: Make sure this ends up as a short!
         paramv.a("Health", (short) (byte) this.f);
         paramv.a("Age", (short) this.b);
         paramv.a("Item", this.a.a(new v()));
@@ -186,6 +188,7 @@ public class gj extends dx {
 
         int i = this.a.a;
         if ((this.c == 0) && (paramfx.al.a(this.a))) {
+            // hMod: allow item pickups
             Item item = new Item(a.c, a.a);
             if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.ITEM_PICK_UP, new Object[]{paramfx, item})) {
                 this.l.a(this, "random.pop", 0.2F, ((this.W.nextFloat() - this.W.nextFloat()) * 0.7F + 1.0F) * 2.0F);

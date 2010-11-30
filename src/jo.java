@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -6,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class jo implements bu {
+
     private Set a = new HashSet();
     private js b;
     private bu c;
@@ -178,10 +180,11 @@ public class jo implements bu {
         }
         return true;
     }
-
+    // hMod: Load status
     boolean loaded = false;
 
     public boolean a() {
+        // hMod: Load once!
         if (!loaded) {
             etc.getLoader();
             loaded = true;

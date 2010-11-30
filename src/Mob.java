@@ -4,7 +4,18 @@
  * 
  * @author James
  */
-public class Mob extends BaseEntity {
+public class Mob extends LivingEntity {
+    gb mob;
+    
+    /**
+     * Creates a mob interface
+     * 
+     * @param mob name of mob
+     */
+    public Mob(gb mob) {
+        super(mob);
+        this.mob = mob;
+    }
 
     /**
      * Creates a mob interface
@@ -13,30 +24,18 @@ public class Mob extends BaseEntity {
      *            name of mob
      */
     public Mob(String mob) {
-        this.entity = (jy) hn.a(mob, etc.getMCServer().e);
+        this((gb) hn.a(mob, etc.getMCServer().e));
     }
 
     /**
      * Creates a mob interface
      * 
-     * @param mob
-     *            name of mob
-     * @param location
-     *            location of mob
+     * @param mobName name of mob
+     * @param location location of mob
      */
-    public Mob(String mob, Location location) {
-        this.entity = (jy) hn.a(mob, etc.getMCServer().e);
+    public Mob(String mobName, Location location) {
+        this(mobName);
         teleportTo(location);
-    }
-
-    /**
-     * Creates a mob interface
-     * 
-     * @param mob
-     *            name of mob
-     */
-    public Mob(hd mob) {
-        this.entity = mob;
     }
 
     /**
@@ -78,9 +77,9 @@ public class Mob extends BaseEntity {
      * Drops this mob's loot. Automatically called if health is set to 0.
      */
     public void dropLoot() {
-        entity.f(null);
+        mob.f(null);
     }
-
+    
     public void setHealth(int health) {
         super.setHealth(health);
         if (health <= 0) {
@@ -93,8 +92,8 @@ public class Mob extends BaseEntity {
      * 
      * @return
      */
-    public jy getMob() {
-        return entity;
+    public gb getMob() {
+        return mob;
     }
 
     /**

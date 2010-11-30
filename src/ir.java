@@ -1,3 +1,4 @@
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,9 +8,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class ir {
+
     private static Map a = new HashMap();
     private static Map b = new HashMap();
-
     public boolean j = false;
 
     static void a(int paramInt, Class paramClass) {
@@ -79,10 +80,10 @@ public abstract class ir {
         a(3, bh.class); // Chat
         a(4, gh.class); // Time
         a(5, u.class); // Inventory
-        a(6, co.class); // ?
+        a(6, co.class); // do respawn ?
         a(7, a.class); // ?
-        a(8, ed.class); // ?
-        a(9, az.class); // ?
+        a(8, ed.class); // received damage
+        a(9, az.class); // do die packet
 
         a(10, hb.class); // 'Flying'
         a(11, ae.class); // Player position (anim related)
@@ -110,8 +111,9 @@ public abstract class ir {
         a(38, ho.class); // ??
         a(39, s.class); // ?? 
 
+        // hMod: get around referencing of 'do'
         try {
-            a(50, Class.forName("do") ); // Pre-chunk
+            a(50, Class.forName("do")); // Pre-chunk
         } catch (ClassNotFoundException e) {
         } //do.class);
         a(51, dm.class); // Map chunk

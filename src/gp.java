@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -13,9 +14,11 @@ import java.util.logging.Logger;
 import net.minecraft.server.MinecraftServer;
 
 public class gp {
+
     public static Logger a = Logger.getLogger("Minecraft");
     public List b = new ArrayList();
     private MinecraftServer c;
+    // hMod: reflection to get around 'if'
     private Object d;
     private int e;
     private Set f = new HashSet();
@@ -25,18 +28,24 @@ public class gp {
     private File j;
     private File k;
     private cy l;
-
+    // hMod: reflection to get around 'if'
     private Method if_a, if_a1, if_a2, if_a3, if_b, if_b2, if_c;
 
     public gp(MinecraftServer paramMinecraftServer) {
+        // hMod: Store the server, load data, get cracking!
         etc.setServer(paramMinecraftServer);
         etc.getInstance().loadData();
-        a.info("Hey0 Server Mod Build " + etc.getInstance().getVersion());
+        if (!etc.getInstance().getTainted())
+            a.info("Hey0 Server Mod Build " + etc.getInstance().getVersion());
+        else {
+            a.info("hMod Build Information: " + etc.getInstance().getVersionStr());
+        }
         this.c = paramMinecraftServer;
         this.i = paramMinecraftServer.a("banned-players.txt");
         this.j = paramMinecraftServer.a("banned-ips.txt");
         this.k = paramMinecraftServer.a("ops.txt");
 
+        // hMod: reflection to get around 'if'
         // Create an object of class 'if'.
         try {
             Class<?> reallyIf = Class.forName("if");
@@ -67,7 +76,6 @@ public class gp {
             if_c.setAccessible(true);
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -86,10 +94,10 @@ public class gp {
 
     public int a() {
         int p = 0;
+        // hMod: reflection to get around 'if'
         try {
             p = (Integer) if_b.invoke(d);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -106,38 +114,42 @@ public class gp {
             paramer.a(paramer.p, paramer.q + 1.0D, paramer.r);
         }
         this.c.e.a(paramer);
+        // hMod: reflection to get around 'if'
         try {
             if_a3.invoke(d, paramer);
-        } catch (Exception e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        // Login
-        for (String str : etc.getInstance().getMotd()) {
-            paramer.a.b(new bh(str));
+        // hMod: Handle login (send MOTD and call hook)
+        String[] motd = etc.getInstance().getMotd();
+        if (!(motd.length == 1 && motd[0].equals(""))) {
+            for (String str : etc.getInstance().getMotd()) {
+                paramer.a.b(new bh(str));
+            }
         }
         etc.getLoader().callHook(PluginLoader.Hook.LOGIN, new Object[]{paramer});
     }
 
     public void b(er paramer) {
+        // hMod: reflection to get around 'if'
         try {
             if_c.invoke(d, paramer);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
     public void c(er paramer) {
+        this.l.a(paramer);
+        this.c.e.d(paramer);
+        this.b.remove(paramer);
+        // hMod: reflection to get around 'if'
         try {
             this.if_b2.invoke(d, paramer);
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-        this.l.a(paramer);
-        this.c.e.d(paramer);
-        this.b.remove(paramer);
     }
 
     public er a(fq paramfq, String paramString1, String paramString2) {
@@ -146,6 +158,7 @@ public class gp {
             return null;
         }
 
+        // hMod: whole section below is modified to handle whitelists etc
         er temp = new er(this.c, this.c.e, paramString1, new jt(this.c.e));
         Player player = temp.getPlayer();
 
@@ -167,6 +180,7 @@ public class gp {
                 }
             }
         }
+
         if (etc.getInstance().isWhitelistEnabled() && !(etc.getDataSource().isUserOnWhitelist(paramString1) || player.isAdmin())) {
             paramfq.b(etc.getInstance().getWhitelistMessage());
             return null;
@@ -201,7 +215,7 @@ public class gp {
 
     /**
      * Returns the list of bans
-     * 
+     *
      * @return
      */
     public String getBans() {
@@ -219,7 +233,7 @@ public class gp {
 
     /**
      * Returns the list of IP bans
-     * 
+     *
      * @return
      */
     public String getIpBans() {
@@ -235,21 +249,58 @@ public class gp {
         return builder.toString();
     }
 
+    public er d(er paramer) {
+        this.c.k.a(paramer);
+        this.c.k.b(paramer);
+        // hMod: reflection to get around 'if'
+        try {
+            this.if_b2.invoke(d, paramer);
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+        this.b.remove(paramer);
+        this.c.e.e(paramer);
+
+        er localer = new er(this.c, this.c.e, paramer.as, new jt(this.c.e));
+
+        localer.g = paramer.g;
+        localer.a = paramer.a;
+
+        this.c.e.A.d((int) localer.p >> 4, (int) localer.r >> 4);
+        while (this.c.e.a(localer, localer.z).size() != 0) {
+            localer.a(localer.p, localer.q + 1.0D, localer.r);
+        }
+
+        localer.a.b(new az());
+        localer.a.a(localer.p, localer.q, localer.r, localer.v, localer.w);
+
+        // hMod: reflection to get around 'if'
+        try {
+            this.if_a3.invoke(d, localer);
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+        this.c.e.a(localer);
+        this.b.add(localer);
+
+        return localer;
+    }
+
     public void b() {
+        // hMod: reflection to get around 'if'
         try {
             this.if_a2.invoke(d);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
     public void a(int paramInt1, int paramInt2, int paramInt3) {
+        // hMod: reflection to get around 'if'
         Object args[] = {paramInt1, paramInt2, paramInt3};
         try {
             this.if_a1.invoke(d, args);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -421,11 +472,11 @@ public class gp {
     }
 
     public void a(int paramInt1, int paramInt2, int paramInt3, ay paramay) {
+        // hMod: reflection to get around 'if'
         Object args[] = {new jf(paramInt1, paramInt2, paramInt3, paramay), paramInt1, paramInt2, paramInt3};
         try {
             if_a.invoke(d, args);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

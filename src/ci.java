@@ -1,25 +1,27 @@
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 public class ci {
+
     public boolean a = false;
     private Random b = new Random();
 
     public void a(eo parameo, dx paramdx, double paramDouble1, double paramDouble2, double paramDouble3, float paramFloat) {
-        Block block = new Block((int) parameo.a((int) Math.floor(paramDouble1), (int) Math.floor(paramDouble2), (int) Math.floor(paramDouble3)), (int) Math.floor(paramDouble1), (int) Math.floor(paramDouble2), (int) Math.floor(paramDouble3));
+        // hMod: store block location of explosion
+        Block block = new Block(parameo.a((int) Math.floor(paramDouble1), (int) Math.floor(paramDouble2), (int) Math.floor(paramDouble3)), (int) Math.floor(paramDouble1), (int) Math.floor(paramDouble2), (int) Math.floor(paramDouble3));
 
-        //dynamite (notch failed since he made the type null) :/
+        // hMod: dynamite (notch failed since he made the type null) :/
         if (paramdx == null) {
             block.setStatus(1);
-        }
-        //Creeper
-        else if (paramdx instanceof fm) {
+        } else if (paramdx instanceof fm) {
+            //Creeper
             block.setStatus(2);
         }
 
+        // hMod: allow explosion
         if ((Boolean) etc.getLoader().callHook(PluginLoader.Hook.EXPLODE, new Object[]{block})) {
             return;
         }
@@ -105,7 +107,14 @@ public class ci {
 
                 d10 = parameo.a(localbd, localdx.z);
                 d11 = (1.0D - d5) * d10;
-                localdx.a(paramdx, (int) ((d11 * d11 + d11) / 2.0D * 8.0D * paramFloat + 1.0D));
+                
+                // hMod Damage hook: Explosions
+                int damage = (int) ((d11 * d11 + d11) / 2.0D * 8.0D * paramFloat + 1.0D);
+                BaseEntity exploder = new BaseEntity(localdx);
+                PluginLoader.DamageType dmgType = (paramdx instanceof fm) ? PluginLoader.DamageType.CREEPER_EXPLOSION : PluginLoader.DamageType.EXPLOSION;
+                if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.DAMAGE, new Object[]{dmgType, null, exploder, damage})) {
+                    localdx.a(paramdx, damage);
+                }
 
                 d12 = d11;
                 localdx.s += d6 * d12;

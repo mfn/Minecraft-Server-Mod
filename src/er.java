@@ -1,3 +1,4 @@
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -6,13 +7,13 @@ import java.util.Set;
 import net.minecraft.server.MinecraftServer;
 
 public class er extends fx {
+
     public jg a;
     public MinecraftServer b;
     public jt c;
     public double d;
     public double e;
     public List f = new LinkedList();
-
     public Set aj = new HashSet();
     public double ak;
     private int bu = -1;
@@ -36,13 +37,13 @@ public class er extends fx {
         this.S = 0.0F;
         paramjt.a = this;
         this.as = paramString;
-        this.c = paramjt;
+        this.c = new Digging(parameo, this);
         this.H = 0.0F;
 
         player = etc.getDataSource().getPlayer(paramString);
         player.setUser(this);
     }
-    
+
     /**
      * Returns the player
      * 
@@ -64,7 +65,9 @@ public class er extends fx {
     }
 
     public void f(dx paramdx) {
-        this.al.f();
+        // hMod: drops inventory on death.
+        if (etc.getInstance().isHealthEnabled())
+            this.al.f();
     }
 
     public boolean a(dx paramdx, int paramInt) {
@@ -81,6 +84,27 @@ public class er extends fx {
         return super.a(paramdx, paramInt);
     }
 
+    /**
+    Heal health by paramInt
+    2 = 1 heart.
+    20 = max health.
+
+    Code for decrease health ( from fx.class )
+     *  Decrease damage because of armor ( al = inventory )
+    int i = 25 - al.e();
+     * paramInt is the ammount of health to decrease ?
+     * add left over damage ?
+    int j = paramInt * i + a;
+     * decrease durability of armor ?
+    al.c(paramInt);
+     * the actual damage experienced.
+    paramInt = j / 25;
+     * store left over damage ?
+    a = (j % 25);
+    super.c(paramInt);
+     *
+     *
+     */
     public void a(int paramInt) {
         super.a(paramInt);
     }
@@ -116,6 +140,8 @@ public class er extends fx {
                         localObject1.b * 16 + 16);
                 for (int j = 0; j < ((List) localObject2).size(); j++) {
                     ay localay = (ay) ((List) localObject2).get(j);
+
+                    // hMod: Don't let people interact with Chests/Furnaces unless they can guild
                     if (!player.canBuild() && (localay instanceof ia || localay instanceof dt)) {
                         continue;
                     }
@@ -127,7 +153,7 @@ public class er extends fx {
                     } else if (localay instanceof jl) {
                         block = new Sign((jl) localay);
                     } else if (localay instanceof cf) {
-                        block = new MobSpawner((cf)localay);
+                        block = new MobSpawner((cf) localay);
                     }
                     if (block != null) {
                         if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.COMPLEX_BLOCK_SEND, new Object[]{this, block})) {
@@ -140,8 +166,20 @@ public class er extends fx {
             }
         }
 
+        // hMod: Update the health
         if (this.aQ != this.bu) {
-            this.a.b(new ed(this.aQ));
+            //updates your health when it is changed.
+            if(!etc.getInstance().isHealthEnabled()) {
+                this.aQ = 20;
+                this.aZ = false;
+            // Only send health updates when health is turned on.
+            } else {
+                if ((Boolean) etc.getLoader().callHook(PluginLoader.Hook.HEALTH_CHANGE, new Object[]{getPlayer(), this.bu, this.aQ})){
+                    this.aQ = this.bu;
+                } else {
+                    this.a.b(new ed(this.aQ));
+                }
+            }
             this.bu = this.aQ;
         }
     }
@@ -177,32 +215,6 @@ public class er extends fx {
         super.e(paramdx);
         this.a.b(new s(this, this.k));
         this.a.a(this.p, this.q, this.r, this.v, this.w);
-    }
-
-    public void G() {
-        this.aQ = 20;
-
-        int i = this.l.m;
-        int j = this.l.o;
-        int k = this.l.n;
-
-        if (!this.l.q.e) {
-            i += this.W.nextInt(20) - 10;
-            k = this.l.e(i, j);
-            j += this.W.nextInt(20) - 10;
-        }
-
-        this.a.a(i + 0.5D, k, j + 0.5D, 0.0F, 0.0F);
-        this.a.b(new co(i, k, j));
-
-        this.bu = -1;
-        this.Z = 0;
-        this.A = true;
-        this.ad = 300;
-        this.aa = 300;
-
-        this.aZ = false;
-        this.G = false;
     }
 
     protected void a(double paramDouble, boolean paramBoolean) {

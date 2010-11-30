@@ -19,10 +19,7 @@ public class jt {
             ga.m[j].b(this.b, paramInt1, paramInt2, paramInt3, this.a);
         }
         if ((j > 0) && (ga.m[j].a(this.a) >= 1.0F)) {
-            Block block = etc.getServer().getBlockAt(paramInt1, paramInt2, paramInt3);
-            if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.BLOCK_BROKEN, new Object[]{(er) a, block})) {
-                c(paramInt1, paramInt2, paramInt3);
-            }
+            c(paramInt1, paramInt2, paramInt3);
         }
     }
 
@@ -48,10 +45,7 @@ public class jt {
             this.f += 1.0F;
 
             if (this.d >= 1.0F) {
-                Block block = etc.getServer().getBlockAt(paramInt1, paramInt2, paramInt3);
-                if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.BLOCK_BROKEN, new Object[]{(er) a, block})) {
-                    c(paramInt1, paramInt2, paramInt3);
-                }
+                c(paramInt1, paramInt2, paramInt3);
                 this.d = 0.0F;
                 this.c = 0.0F;
                 this.f = 0.0F;
@@ -82,12 +76,12 @@ public class jt {
         int k = this.b.b(paramInt1, paramInt2, paramInt3);
         boolean bool = b(paramInt1, paramInt2, paramInt3);
 
-        hl localhl = this.a.I();
+        hl localhl = this.a.H();
         if (localhl != null) {
             localhl.a(j, paramInt1, paramInt2, paramInt3);
             if (localhl.a == 0) {
                 localhl.a(this.a);
-                this.a.J();
+                this.a.I();
             }
         }
         if ((bool) && (this.a.b(ga.m[j]))) {
@@ -98,6 +92,10 @@ public class jt {
 
     public boolean a(fx paramfx, eo parameo, hl paramhl) {
         int j = paramhl.a;
+        // hMod: onItemUse
+        if (paramfx instanceof er && (Boolean) etc.getLoader().callHook(PluginLoader.Hook.ITEM_USE, new Object[]{((er) paramfx).getPlayer(), new Item(paramhl)})) {
+            return false;
+        }
         hl localhl = paramhl.a(parameo, paramfx);
         if ((localhl != paramhl) || ((localhl != null) && (localhl.a != j))) {
             paramfx.al.a[paramfx.al.d] = localhl;

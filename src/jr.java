@@ -1,6 +1,8 @@
+
 import java.util.Random;
 
 public class jr extends ga {
+
     private int[] a = new int[256];
     private int[] b = new int[256];
 
@@ -82,11 +84,11 @@ public class jr extends ga {
 
                         int i2 = h(parameo, k, n, m);
                         if ((i2 > 0) && (paramRandom.nextInt(i1) <= i2)) {
-                            //dynamic spreading of fire.
+                            // hMod: dynamic spreading of fire.
                             // avg call amount per placed block of fire ~ 4
                             Block block = new Block(parameo.a(k, n, m), k, n, m);
                             block.setStatus(3);
-                            if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.IGNITE, new Object[]{block , null})) {
+                            if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.IGNITE, new Object[]{block, null})) {
                                 parameo.d(k, n, m, this.bh);
                             }
                         }
@@ -101,13 +103,12 @@ public class jr extends ga {
         if (paramRandom.nextInt(paramInt4) < i) {
             int j = parameo.a(paramInt1, paramInt2, paramInt3) == ga.am.bh ? 1 : 0;
             if (paramRandom.nextInt(2) == 0) {
-                //VERY SLOW dynamic spreading of fire.
+                // hMod: VERY SLOW dynamic spreading of fire.
                 Block block = new Block(parameo.a(paramInt1, paramInt2, paramInt3), paramInt1, paramInt2, paramInt3);
                 block.setStatus(3);
                 if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.IGNITE, new Object[]{block, null})) {
-                   parameo.d(paramInt1, paramInt2, paramInt3, this.bh);
+                    parameo.d(paramInt1, paramInt2, paramInt3, this.bh);
                 }
-                parameo.d(paramInt1, paramInt2, paramInt3, this.bh);
             } else {
                 parameo.d(paramInt1, paramInt2, paramInt3, 0);
             }
@@ -118,22 +119,22 @@ public class jr extends ga {
     }
 
     private boolean g(eo parameo, int paramInt1, int paramInt2, int paramInt3) {
-        if (b((it)parameo, paramInt1 + 1, paramInt2, paramInt3)) {
+        if (b((it) parameo, paramInt1 + 1, paramInt2, paramInt3)) {
             return true;
         }
-        if (b((it)parameo, paramInt1 - 1, paramInt2, paramInt3)) {
+        if (b((it) parameo, paramInt1 - 1, paramInt2, paramInt3)) {
             return true;
         }
-        if (b((it)parameo, paramInt1, paramInt2 - 1, paramInt3)) {
+        if (b((it) parameo, paramInt1, paramInt2 - 1, paramInt3)) {
             return true;
         }
-        if (b((it)parameo, paramInt1, paramInt2 + 1, paramInt3)) {
+        if (b((it) parameo, paramInt1, paramInt2 + 1, paramInt3)) {
             return true;
         }
-        if (b((it)parameo, paramInt1, paramInt2, paramInt3 - 1)) {
+        if (b((it) parameo, paramInt1, paramInt2, paramInt3 - 1)) {
             return true;
         }
-        return b((it)parameo, paramInt1, paramInt2, paramInt3 + 1);
+        return b((it) parameo, paramInt1, paramInt2, paramInt3 + 1);
     }
 
     private int h(eo parameo, int paramInt1, int paramInt2, int paramInt3) {
