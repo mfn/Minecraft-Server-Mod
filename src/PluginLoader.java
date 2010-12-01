@@ -241,8 +241,11 @@ public class PluginLoader {
     	/* 
     	 * Damage caused from drowning (2)
     	 */
-    	WATER
-    	
+    	WATER,
+        /*
+         * Damaged caused by cactus (1)
+         */
+        CACTUS
     }
     
     private static final Logger log = Logger.getLogger("Minecraft");
@@ -445,6 +448,7 @@ public class PluginLoader {
         }
 
         synchronized (lock) {
+            PluginListener listener = null;
             try {
                 List<PluginRegisteredListener> registeredListeners = listeners.get(h.ordinal());
 
@@ -453,7 +457,7 @@ public class PluginLoader {
                         continue;
                     }
 
-                    PluginListener listener = regListener.getListener();
+                    listener = regListener.getListener();
 
                     try {
                         switch (h) {
@@ -639,7 +643,8 @@ public class PluginLoader {
                     }
                 }
             } catch (Exception ex) {
-                log.log(Level.SEVERE, "Exception while calling plugin function", ex);
+                String listenerString = listener == null ? "null(unknown listener)" : listener.getClass().toString();
+                log.log(Level.SEVERE, "Exception while calling plugin function in '" + listenerString + "' while calling hook: '" + h.toString() + "'.", ex);
             } catch (Throwable ex) { // The 'exception' thrown is so severe it's
                 // not even an exception!
                 log.log(Level.SEVERE, "Throwable while calling plugin (Outdated?)", ex);

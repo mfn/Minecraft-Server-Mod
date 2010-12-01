@@ -125,13 +125,12 @@ public class jz extends dy {
                     float f2 = W.nextFloat() - W.nextFloat();
                     float f3 = W.nextFloat() - W.nextFloat();
                     l.a("bubble", p + f1, q + f2, r + f3, s, t, u);
-                    // hMod Damage hook: Drowning
-                    LivingEntity defender = new LivingEntity(this);
-                    if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.DAMAGE, new Object[]{PluginLoader.DamageType.WATER, null, defender, 2})) {
-                        a(null, 2);
-                    }
                 }
-                a(null, 2);
+                // hMod Damage hook: Drowning
+                LivingEntity defender = new LivingEntity(this);
+                if (!(Boolean) etc.getLoader().callHook(PluginLoader.Hook.DAMAGE, new Object[]{PluginLoader.DamageType.WATER, null, defender, 2})) {
+                    a(null, 2);
+                }
             }
 
             Z = 0;
@@ -325,7 +324,8 @@ public class jz extends dy {
         aV = 0.0F;
 
         if (i != 0) {
-            l.a(this, 2);
+            // hMod: Forced cast to send 'damage animation'.
+            l.a(this, (byte)2);
             u();
             if (paramdy != null) {
                 double d1 = paramdy.p - p;
@@ -406,7 +406,8 @@ public class jz extends dy {
             }
         }
 
-        l.a(this, 3);
+        // hMod: Forced cast to play Death Animations.
+        l.a((dy)this, (byte)3);
     }
 
     protected int g() {
@@ -534,10 +535,11 @@ public class jz extends dy {
         aT = paramv.c("HurtTime");
         aW = paramv.c("DeathTime");
         aX = paramv.c("AttackTime");
+
         // hMod: Lets unbreak 'dead' characters so admins don't have to delete .dat files anymore >.>
-        if (aQ < 0 || aV != 0) {
-            aQ = 20; // Health
-            aV = 0; // DeathTime
+        if (aR < 0 || aW != 0) {
+            aR = 20; // Health
+            aW = 0; // DeathTime
         }
     }
 
