@@ -45,19 +45,7 @@ public class etc {
     private boolean showUnknownCommand = true;
     private String versionStr;
     private boolean tainted = true;
-    private int version = 1;                                                                                                                              // Version
-    // is
-    // meant
-    // to
-    // be
-    // loaded
-    // from
-    // the
-    // file,
-    // this
-    // stays
-    // as
-    // 1.
+    private int version = 1; // Version is meant to be loaded from the file, this stays as 1.
     private String driver, username, password, db;
 
     private etc() {
