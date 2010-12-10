@@ -186,6 +186,10 @@ public class PluginLoader {
          */
         LIQUID_DESTROY,
         /**
+         * Calls onAttack
+         */
+        ATTACK,
+        /**
          * Unused.
          */
         NUM_HOOKS
@@ -285,19 +289,21 @@ public class PluginLoader {
     /**
      * Loads the specified plugin
      * @param fileName file name of plugin to load
+     * @return if the operation was successful
      */
-    public void loadPlugin(String fileName) {
+    public Boolean loadPlugin(String fileName) {
         if (getPlugin(fileName) != null) {
-            return; // Already exists.
+            return false; // Already exists.
         }
-        load(fileName);
+        return load(fileName);
     }
 
     /**
      * Reloads the specified plugin
      * @param fileName file name of plugin to reload
+     * @return if the operation was successful
      */
-    public void reloadPlugin(String fileName) {
+    public Boolean reloadPlugin(String fileName) {
         /* Not sure exactly how much of this is necessary */
         Plugin toNull = getPlugin(fileName);
         if (toNull != null) {
@@ -318,10 +324,10 @@ public class PluginLoader {
         }
         toNull = null;
 
-        load(fileName);
+        return load(fileName);
     }
 
-    private void load(String fileName) {
+    private Boolean load(String fileName) {
         try {
             File file = new File("plugins/" + fileName + ".jar");
             Class c;
@@ -346,7 +352,9 @@ public class PluginLoader {
             }
         } catch (Throwable ex) {
             log.log(Level.SEVERE, "Exception while loading plugin", ex);
+            return false;
         }
+        return true;
     }
 
     /**
@@ -402,7 +410,7 @@ public class PluginLoader {
         } else { // New plugin, perhaps?
             File file = new File("plugins/" + name + ".jar");
             if (file.exists()) {
-                loadPlugin(name);
+                return loadPlugin(name);
             } else {
                 return false;
             }
@@ -608,7 +616,9 @@ public class PluginLoader {
                                 }
                                 break;
                             case VEHICLE_COLLISION:
-                                listener.onVehicleCollision((BaseVehicle) parameters[0], (BaseEntity) parameters[1]);
+                                if (listener.onVehicleCollision((BaseVehicle) parameters[0], (BaseEntity) parameters[1])) {
+                                    toRet = true;
+                                }
                                 break;
                             case VEHICLE_DESTROYED:
                                 listener.onVehicleDestroyed((BaseVehicle) parameters[0]);
@@ -636,6 +646,11 @@ public class PluginLoader {
                                 HookResult ret = listener.onLiquidDestroy((HookResult) toRet, (Integer) parameters[0], (Block) parameters[1]);
                                 if (ret != HookResult.DEFAULT_ACTION && (HookResult) toRet == HookResult.DEFAULT_ACTION) {
                                     toRet = ret;
+                                }
+                                break;
+                            case ATTACK:
+                                if (listener.onAttack((LivingEntity) parameters[0], (LivingEntity) parameters[1], (Integer) parameters[2])) {
+                                    toRet = true;
                                 }
                                 break;
                         }

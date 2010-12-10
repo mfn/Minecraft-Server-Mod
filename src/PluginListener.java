@@ -173,7 +173,7 @@ public abstract class PluginListener {
      * @deprecated use onBlockRightClick to get the information
      * @see #onBlockRightClicked(Player, Block, Item)
      * @see #onBlockPlace(Player, Block, Block, Item)
-     * @see #onItemUse(Player, Item)
+     * @see #onItemUse(Player, Block, Block, Item)
      */
     @Deprecated
     public boolean onBlockCreate(Player player, Block blockPlaced, Block blockClicked, int itemInHand) {
@@ -456,9 +456,10 @@ public abstract class PluginListener {
      * 
      * @param vehicle the vehicle
      * @param collisioner
+     * @return false to ignore damage
      */
-    public void onVehicleCollision(BaseVehicle vehicle, BaseEntity collisioner) {
-
+    public Boolean onVehicleCollision(BaseVehicle vehicle, BaseEntity collisioner) {
+        return false;
     }
 
     /**
@@ -489,6 +490,7 @@ public abstract class PluginListener {
     public void onVehiclePositionChange(BaseVehicle vehicle, int x, int y, int z) {
 
     }
+
     /**
      * Called when a player uses an item (rightclick with item in hand)
      * @param player the player
@@ -497,7 +499,6 @@ public abstract class PluginListener {
      * @param item the item being used (in hand)
      * @return true to prevent using the item.
      */
-
     public boolean onItemUse(Player player, Block blockPlaced, Block blockClicked, Item item) {
         return false;
     }
@@ -540,5 +541,20 @@ public abstract class PluginListener {
      */
     public PluginLoader.HookResult onLiquidDestroy( PluginLoader.HookResult currentState, int liquidBlockId, Block targetBlock )  {
         return PluginLoader.HookResult.DEFAULT_ACTION;
+    }
+
+    /**
+     * Called when an entity (attacker) tries to hurt a player (defender).
+     * Returning 'true' prevents all damage, returning 'false' lets the game handle it.
+     * Remember that the damage will be lessened by the amount of {@link LivingEntity#getLastDamage()}
+     * the defender has.
+     * 
+     * @param attacker the giver
+     * @param defender the taker
+     * @param amount of damage the entity tries to do
+     * @return
+     */
+    public boolean onAttack(LivingEntity attacker, LivingEntity defender, Integer amount) {
+        return false;
     }
 }

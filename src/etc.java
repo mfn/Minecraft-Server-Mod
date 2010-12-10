@@ -5,11 +5,15 @@ import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.minecraft.server.*;
+import net.minecraft.server.MinecraftServer;
 
 /**
  * etc.java - My catch-all class for a bunch of shit. If there's something you
@@ -25,9 +29,11 @@ public class etc {
     private String usersLoc = "users.txt", kitsLoc = "kits.txt", homeLoc = "homes.txt", warpLoc = "warps.txt", itemLoc = "items.txt", groupLoc = "groups.txt";
     private String whitelistLoc = "whitelist.txt", reservelistLoc = "reservelist.txt";
     private String whitelistMessage = "Not on whitelist.";
-    private String[] allowedItems = null;
-    private String[] disallowedItems = null;
-    private String[] itemSpawnBlacklist = null;
+    
+    private Set<Integer> allowedItems = new HashSet<Integer>();
+    private Set<Integer> disallowedItems = new HashSet<Integer>();
+    private Set<Integer> itemSpawnBlacklist = new HashSet<Integer>();
+    
     private String[] motd = null;
     private boolean saveHomes = true;
     private boolean firstLoad = true;
@@ -90,6 +96,19 @@ public class etc {
         load();
     }
 
+    private void loadIds(Collection<Integer> storage, String rawData) {
+        for (String id : rawData.split(",")) {
+            id = id.trim();
+            if (id.length() > 0) {
+                try {
+                    storage.add(Integer.parseInt(id));
+                } catch (NumberFormatException e) {
+                    log.log(Level.SEVERE, "While parsing the config: '" + id + "' is not a number");
+                }
+            }
+        }
+    }
+
     /**
      * Loads or reloads the mod
      */
@@ -107,9 +126,9 @@ public class etc {
         try {
             dataSourceType = properties.getString("data-source", "flatfile");
 
-            allowedItems = properties.getString("alloweditems", "").split(",");
-            disallowedItems = properties.getString("disalloweditems", "").split(",");
-            itemSpawnBlacklist = properties.getString("itemspawnblacklist", "").split(",");
+            loadIds( allowedItems, properties.getString("alloweditems", ""));
+            loadIds( disallowedItems, properties.getString("disalloweditems", ""));
+            loadIds( itemSpawnBlacklist, properties.getString("itemspawnblacklist", ""));
             motd = properties.getString("motd", "Type /help for a list of commands.").split("@");
             playerLimit = properties.getInt("max-players", 20);
             saveHomes = properties.getBoolean("save-homes", true);
@@ -168,9 +187,6 @@ public class etc {
         } catch (Exception e) {
             log.log(Level.SEVERE, "Exception while reading from server.properties", e);
             // Just in case...
-            disallowedItems = new String[]{""};
-            allowedItems = new String[]{""};
-            itemSpawnBlacklist = new String[]{""};
             motd = new String[]{"Type /help for a list of commands."};
         }
     }
@@ -297,12 +313,7 @@ public class etc {
      * @return
      */
     public boolean isOnItemBlacklist(int id) {
-        for (String str : itemSpawnBlacklist) {
-            if (Integer.toString(id).equalsIgnoreCase(str)) {
-                return true;
-            }
-        }
-        return false;
+        return itemSpawnBlacklist.contains(id);
     }
 
     /**
@@ -370,6 +381,26 @@ public class etc {
         whitelistEnabled = !whitelistEnabled;
         return whitelistEnabled;
     }
+    
+    /**
+     * Callback object for notifications sent by executed ServerCommands.
+     * so that they appear in server log.
+     */
+    private MessageReceiver serverConsole = new MessageReceiver() {
+        @Override
+        public String getName() {
+            return "<Server>";
+        }
+
+        @Override
+        public void notify(String message) {
+            // Strip the colors.
+            message = message.replaceAll("§[a-f0-9]", "");
+            if (message != null)
+                log.info(message);
+        }
+        
+    };
 
     /**
      * Parses a console command
@@ -410,139 +441,10 @@ public class etc {
             log.info("enableplugin  Enables a plugin");
             log.info("disableplugin Disables a plugin");
             log.info("reloadplugin  Reloads a plugin");
-        } else if (split[0].equalsIgnoreCase("reload")) {
-            load();
-            loadData();
-            for (Player player : etc.getServer().getPlayerList()) {
-                player.getUser().reloadPlayer();
-            }
-
-            log.info("Reloaded mod");
-        } else if (split[0].equalsIgnoreCase("modify")) {
-            if (split.length < 4) {
-                log.info("Usage is: /modify [player] [key] [value]");
-                log.info("Keys:");
-                log.info("prefix: only the letter the color represents");
-                log.info("commands: list seperated by comma");
-                log.info("groups: list seperated by comma");
-                log.info("ignoresrestrictions: true or false");
-                log.info("admin: true or false");
-                log.info("modworld: true or false");
-                return true;
-            }
-
-            Player player = getServer().matchPlayer(split[1]);
-
-            if (player == null) {
-                log.info("Player does not exist.");
-                return true;
-            }
-
-            String key = split[2];
-            String value = split[3];
-            boolean newUser = false;
-
-            if (!etc.getDataSource().doesPlayerExist(player.getName())) {
-                if (!key.equalsIgnoreCase("groups") && !key.equalsIgnoreCase("g")) {
-                    log.info("When adding a new user, set their group(s) first.");
-                    return true;
-                }
-                log.info("Adding new user.");
-                newUser = true;
-            }
-
-            if (key.equalsIgnoreCase("prefix") || key.equalsIgnoreCase("p")) {
-                player.setPrefix(value);
-            } else if (key.equalsIgnoreCase("commands") || key.equalsIgnoreCase("c")) {
-                player.setCommands(value.split(","));
-            } else if (key.equalsIgnoreCase("groups") || key.equalsIgnoreCase("g")) {
-                player.setGroups(value.split(","));
-            } else if (key.equalsIgnoreCase("ignoresrestrictions") || key.equalsIgnoreCase("ir")) {
-                player.setIgnoreRestrictions(value.equalsIgnoreCase("true") || value.equals("1"));
-            } else if (key.equalsIgnoreCase("admin") || key.equalsIgnoreCase("a")) {
-                player.setAdmin(value.equalsIgnoreCase("true") || value.equals("1"));
-            } else if (key.equalsIgnoreCase("modworld") || key.equalsIgnoreCase("mw")) {
-                player.setCanModifyWorld(value.equalsIgnoreCase("true") || value.equals("1"));
-            }
-
-            if (newUser) {
-                etc.getDataSource().addPlayer(player);
-            } else {
-                etc.getDataSource().modifyPlayer(player);
-            }
-            log.info("Modifed user " + split[1] + ". " + key + " => " + value);
-        } else if (split[0].equalsIgnoreCase("whitelist")) {
-            if (split.length < 2) {
-                log.info("whitelist [operation (toggle, add or remove)] [player]");
-                return true;
-            }
-
-            if (split[1].equalsIgnoreCase("toggle")) {
-                log.info(toggleWhitelist() ? "Whitelist enabled" : "Whitelist disabled");
-            } else if (split.length == 3) {
-                if (split[1].equalsIgnoreCase("add")) {
-                    dataSource.addToWhitelist(split[2]);
-                    log.info(split[2] + " added to whitelist");
-                } else if (split[1].equalsIgnoreCase("remove")) {
-                    dataSource.removeFromWhitelist(split[2]);
-                    log.info(split[2] + " removed from whitelist");
-                } else {
-                    log.info("Invalid operation.");
-                }
-            } else {
-                log.info("Invalid operation.");
-            }
-        } else if (split[0].equalsIgnoreCase("reservelist")) {
-            if (split.length != 3) {
-                log.info("reservelist [operation (add or remove)] [player]");
-                return true;
-            }
-
-            if (split[1].equalsIgnoreCase("add")) {
-                dataSource.addToReserveList(split[2]);
-                log.info(split[2] + " added to reservelist");
-            } else if (split[1].equalsIgnoreCase("remove")) {
-                dataSource.removeFromReserveList(split[2]);
-                log.info(split[2] + " removed from reservelist");
-            } else {
-                log.info("Invalid operation.");
-            }
-        } else if (split[0].equalsIgnoreCase("listplugins")) {
-            log.info("Plugins: " + etc.getLoader().getPluginList());
-        } else if (split[0].equalsIgnoreCase("reloadplugin")) {
-            if (split.length < 2) {
-                log.info("Correct usage is: reloadplugin [plugin]");
-                return true;
-            }
-
-            etc.getLoader().reloadPlugin(split[1]);
-            log.info("Plugin reloaded.");
-        } else if (split[0].equalsIgnoreCase("enableplugin")) {
-            if (split.length < 2) {
-                log.info("Correct usage is: enableplugin [plugin]");
-                return true;
-            }
-
-            etc.getLoader().enablePlugin(split[1]);
-            log.info("Plugin enabled.");
-        } else if (split[0].equalsIgnoreCase("disableplugin")) {
-            if (split.length < 2) {
-                log.info("Correct usage is: disableplugin [plugin]");
-                return true;
-            }
-
-            etc.getLoader().disablePlugin(split[1]);
-            log.info("Plugin disabled.");
-        } else if (split[0].equalsIgnoreCase("version")) {
-            if (tainted || version < 0) {
-                log.info("THIS IS AN UNOFFICIAL BUILD OF HMOD");
-                log.info("Build information: " + versionStr);
-            } else {
-                log.info("Hey0 Server Mod Build " + version);
-            }
         } else {
-            dontParseRegular = false;
+            dontParseRegular = ServerConsoleCommands.parseServerConsoleCommand(serverConsole, split[0], split);
         }
+        
         return dontParseRegular;
     }
 
@@ -603,7 +505,7 @@ public class etc {
      * 
      * @return list of allowed items
      */
-    public String[] getAllowedItems() {
+    public Set<Integer> getAllowedItems() {
         return allowedItems;
     }
 
@@ -621,7 +523,7 @@ public class etc {
      * 
      * @return
      */
-    public String[] getDisallowedItems() {
+    public Set<Integer> getDisallowedItems() {
         return disallowedItems;
     }
 
@@ -657,7 +559,7 @@ public class etc {
      * 
      * @return
      */
-    public String[] getItemSpawnBlacklist() {
+    public Set<Integer> getItemSpawnBlacklist() {
         return itemSpawnBlacklist;
     }
 
@@ -765,8 +667,12 @@ public class etc {
      * 
      * @param allowedItems
      */
-    public void setAllowedItems(String[] allowedItems) {
-        this.allowedItems = allowedItems;
+    public void setAllowedItems(int[] allowedItems) {
+        this.allowedItems.clear();
+        // this.allowedItems.addAll(Arrays.asList(allowedItems)); <-- if only java was smart >.>
+        for (int item: allowedItems) {
+            this.allowedItems.add(item);
+        }
     }
 
     /**
@@ -774,8 +680,12 @@ public class etc {
      * 
      * @param disallowedItems
      */
-    public void setDisallowedItems(String[] disallowedItems) {
-        this.disallowedItems = disallowedItems;
+    public void setDisallowedItems(int[] disallowedItems) {
+        this.disallowedItems.clear();
+        // this.allowedItems.addAll(Arrays.asList(allowedItems)); <-- if only java was smart >.>
+        for (int item: disallowedItems) {
+            this.disallowedItems.add(item);
+        }
     }
 
     /**
@@ -810,8 +720,12 @@ public class etc {
      * 
      * @param itemSpawnBlacklist
      */
-    public void setItemSpawnBlacklist(String[] itemSpawnBlacklist) {
-        this.itemSpawnBlacklist = itemSpawnBlacklist;
+    public void setItemSpawnBlacklist(int[] itemSpawnBlacklist) {
+        this.itemSpawnBlacklist.clear();
+        // this.allowedItems.addAll(Arrays.asList(allowedItems)); <-- if only java was smart >.>
+        for (int item: itemSpawnBlacklist) {
+            this.itemSpawnBlacklist.add(item);
+        }
     }
 
     /**

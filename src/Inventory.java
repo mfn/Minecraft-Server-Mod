@@ -3,7 +3,7 @@
  * 
  * @author James
  */
-public class Inventory extends ItemArray {
+public class Inventory extends ItemArray<hk> {
     /**
      * The type of inventory to use
      */
@@ -23,7 +23,7 @@ public class Inventory extends ItemArray {
         Equipment
     }
     private et user;
-    private Type type;
+    private Inventory.Type type = Inventory.Type.Inventory;
 
     /**
      * Creates an interface for this player's inventory
@@ -32,6 +32,7 @@ public class Inventory extends ItemArray {
      * @param type
      */
     public Inventory(Player player, Type type) {
+        super(player.getUser().am, 27);
         this.user = player.getUser();
         this.type = type;
     }
@@ -44,6 +45,7 @@ public class Inventory extends ItemArray {
      * @param amount
      */
     public void giveItem(int itemId, int amount) {
+
         if (amount == -1) {
             int emptySlot = getEmptySlot();
             if (emptySlot == -1) {
@@ -101,18 +103,6 @@ public class Inventory extends ItemArray {
         user.a.d();
     }
 
-    public hn[] getArray() {
-        switch (type) {
-            case Inventory:
-                return user.am.a;
-            case CraftingTable:
-                return user.am.c;
-            case Equipment:
-                return user.am.b;
-        }
-        return new hn[0];
-    }
-
     /**
      * Returns a String value representing this Block
      * 
@@ -141,7 +131,7 @@ public class Inventory extends ItemArray {
         if (!this.user.getPlayer().equals(other.user.getPlayer())) {
             return false;
         }
-        if (this.type != other.type) {
+        if (type != other.type) {
             return false;
         }
         return true;
@@ -159,4 +149,40 @@ public class Inventory extends ItemArray {
         hash = 97 * hash + this.type.ordinal();
         return hash;
     }
+    
+    /** 
+     * Overriding getArray as variable we're interested in depends on the type of inventory...
+     */
+    @Override 
+    public hn[] getArray() {
+        switch (type) {
+        case Inventory:
+            return container.a;
+        case CraftingTable:
+            return container.c;
+        case Equipment:
+            return container.b;
+        }
+        
+        return null;
+    }
+    
+    /** 
+     * Overriding setArray as the target array varies depending on type.
+     */
+    @Override
+    public void setArray(hn[] values) {
+        switch (type) {
+        case Inventory:
+            container.a = values;
+            break;
+        case CraftingTable:
+            container.c = values;
+            break;
+        case Equipment:
+            container.b = values;
+            break;
+        }
+    }
+    
 }

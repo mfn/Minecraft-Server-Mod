@@ -1,4 +1,4 @@
-public class hk implements ke {
+public class hk implements ke, Container<hn> {
     public hn[] a = new hn[37];
     public hn[] b = new hn[4];
     public hn[] c = new hn[4];
@@ -285,5 +285,13 @@ public class hk implements ke {
                 this.b[i] = null;
             }
         }
+    }
+
+    public hn[] getContents() {
+        return a;
+    }
+
+    public void setContents(hn[] values) {
+        a = values;
     }
 }
