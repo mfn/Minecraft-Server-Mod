@@ -28,21 +28,40 @@ public final class bw {
                 }
             }
         }
+
+        // hMod: Cache config spawns to classes outside of the loop
+        etc config = etc.getInstance();
+        Class[] mobs = new Class[config.getMonsters().length];
+        Class[] animals = new Class[config.getAnimals().length];
+
+        for (int i = 0; i < mobs.length; i++) {
+            mobs[i] = hp.getEntity(config.getMonsters()[i]);
+        }
+        for (int i = 0; i < animals.length; i++) {
+            animals[i] = hp.getEntity(config.getAnimals()[i]);
+        }
+
         int i = 0;
         js localjs;
-        label797: label803: for (int j = 0; j < js.values().length; j++) {
+        for (int j = 0; j < js.values().length; j++) {
             localjs = js.values()[j];
 
             if (parameq.a(localjs.c) > localjs.d * a.size() / 256) {
                 continue;
             }
             for (kh localkh : a) {
-                if (parameq.l.nextInt(50) == 0) {
-                    io localio = parameq.a().a(localkh);
-                    Class[] arrayOfClass = localio.a(localjs);
-                    if ((arrayOfClass == null) || (arrayOfClass.length == 0)) {
+                // hMod: from nextInt(50) == 0 to nextInt(100) <= spawnRate, allow customisable value
+                if (parameq.l.nextInt(100) <= etc.getInstance().getMobSpawnRate()) {
+                    // hMod: ignore default spawns, load from config
+                    Class[] arrayOfClass = null;
+                    if (localjs == js.a) {
+                        arrayOfClass = mobs;
+                    } else if (localjs == js.b) {
+                        arrayOfClass = animals;
+                    } else {
                         continue;
                     }
+                    
                     int i3 = parameq.l.nextInt(arrayOfClass.length);
 
                     hs localhs = a(parameq, localkh.a * 16, localkh.b * 16);
@@ -55,18 +74,12 @@ public final class bw {
                     }
                     int i7 = 0;
 
-                    for (int i8 = 0;; i8++) {
-                        if (i8 >= 3) {
-                            break label803;
-                        }
+                    for (int i8 = 0; i8 < 3; i8++) {
                         int i9 = i4;
                         int i10 = i5;
                         int i11 = i6;
                         int i12 = 6;
-                        for (int i13 = 0;; i13++) {
-                            if (i13 >= 4) {
-                                break label797;
-                            }
+                        for (int i13 = 0; i13 < 4; i13++) {
                             i9 += parameq.l.nextInt(i12) - parameq.l.nextInt(i12);
                             i10 += parameq.l.nextInt(1) - parameq.l.nextInt(1);
                             i11 += parameq.l.nextInt(i12) - parameq.l.nextInt(i12);
@@ -85,13 +98,18 @@ public final class bw {
                                 if (f7 < 576.0F) {
                                     continue;
                                 }
-                                ka localka;
+                                ka localka = null;
                                 try {
-                                    localka = (ka) arrayOfClass[i3].getConstructor(new Class[]{eq.class}).newInstance(new Object[]{parameq});
+                                        //hMod : make sure we have something to spawn before fetching calling newInstance.
+                                        if(arrayOfClass != null && arrayOfClass[i3] != null)
+                                            localka = (ka) arrayOfClass[i3].getConstructor(new Class[]{eq.class}).newInstance(new Object[]{parameq});
                                 } catch (Exception localException) {
                                     localException.printStackTrace();
                                     return i;
                                 }
+                                
+                                if(localka == null)
+                                    continue;
 
                                 localka.c(f1, f2, f3, parameq.l.nextFloat() * 360.0F, 0.0F);
 

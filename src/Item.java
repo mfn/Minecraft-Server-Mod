@@ -223,6 +223,18 @@ public class Item {
     }
 
     /**
+     * Create a new item.
+     * @param itemType type of item.
+     */
+    public Item(Type itemType) {
+        this(itemType, 1);
+    }
+    
+    public Item(Type itemType, int amount) {
+        this(itemType.getId(), amount);
+    }
+
+    /**
      * Creates an item with specified id and amount
      * @param itemId
      * @param amount
@@ -255,6 +267,16 @@ public class Item {
         amount = hn.a;
         damage = hn.d;
         this.itemType = Type.fromId(itemId);
+    }
+
+    /**
+     * Creates an item from the actual item class at the given slot
+     * @param hn
+     * @param slot
+     */
+    public Item(hn hn, int slot) {
+        this(hn);
+        this.slot = slot;
     }
 
     /**
