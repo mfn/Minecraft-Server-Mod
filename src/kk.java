@@ -1,6 +1,7 @@
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -378,8 +379,7 @@ public class kk extends fs
             } else if (paramgs.d == 5) {
                 blockPlaced.setX(blockPlaced.getX() + 1);
             }
-        }
-        
+        }        
         if (paramgs.d == 255) {
             // hMod: call our version with extra blockClicked/blockPlaced
             if (blockPlaced != null) {
@@ -388,6 +388,7 @@ public class kk extends fs
             }
             if (localik == null) return;
             ((Digging)this.e.c).a(this.e, this.d.e, localik, blockPlaced, blockClicked);
+            
         } else {
             int m = paramgs.a;
             int n = paramgs.b;
@@ -399,7 +400,7 @@ public class kk extends fs
                 i4 = i3;
             }
             // hMod: call BLOCK_RIGHTCLICKED
-            Item item = (localik != null) ? new Item(localik) : new Item();
+            Item item = (localik != null) ? new Item(localik) : new Item(Item.Type.Air);
             Player player = ((fi)this.e).getPlayer();
             etc.getLoader().callHook(PluginLoader.Hook.BLOCK_RIGHTCLICKED, player, blockClicked, item);
 
@@ -414,7 +415,7 @@ public class kk extends fs
                 this.d.e.B = false;
                 return;
             }
-
+            
             // hMod: these are the 'block changed' packets for the client.
             this.e.a.b(new gd(m, n, i1, this.d.e));
 
@@ -606,13 +607,11 @@ public class kk extends fs
             int i1;
             for (int m = 0; m < 4; m++) {
                 n = 1;
-                if (paramgm.d[m].length() > 15) {
-                    n = 0;
-                } else {
-                    for (i1 = 0; i1 < paramgm.d[m].length(); i1++) {
-                        if (fq.a.indexOf(paramgm.d[m].charAt(i1)) < 0) {
-                            n = 0;
-                        }
+                // hMod: Remove the char limit, for plugins.
+                //if (paramgm.d[m].length() > 15) {
+                for (i1 = 0; i1 < paramgm.d[m].length(); i1++) {
+                    if (fq.a.indexOf(paramgm.d[m].charAt(i1)) < 0) {
+                        n = 0;
                     }
                 }
                 if (n == 0) {
@@ -624,9 +623,20 @@ public class kk extends fs
                 n = paramgm.b;
                 i1 = paramgm.c;
                 kp localko = (kp) localbg;
+
+                // hMod: Copy the old line text
+                String[] old = Arrays.copyOf(localko.e, localko.e.length);
+
                 for (int i2 = 0; i2 < 4; i2++) {
                     localko.e[i2] = paramgm.d[i2];
                 }
+
+                // hMod: Check if we can change it
+                Sign sign = new Sign(localko);
+                if ((Boolean)etc.getLoader().callHook(PluginLoader.Hook.SIGN_CHANGE, getPlayer(), sign)) {
+                    localko.e = Arrays.copyOf(old, old.length);
+                }
+
                 localko.d();
                 this.d.e.g(m, n, i1);
             }
