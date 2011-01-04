@@ -212,7 +212,7 @@ public class Server {
     public List<Mob> getMobList() {
         List<Mob> toRet = new ArrayList<Mob>();
         for (Object o : server.e.b) {
-            if (o instanceof ge || o instanceof ba) {
+            if (o instanceof gu || o instanceof bk) {
                 toRet.add(new Mob((lc) o));
             }
         }
@@ -226,7 +226,7 @@ public class Server {
     public List<Mob> getAnimalList() {
         List<Mob> toRet = new ArrayList<Mob>();
         for (Object o : server.e.b) {
-            if (o instanceof ax) {
+            if (o instanceof bf) {
                 toRet.add(new Mob((lc) o));
             }
         }
@@ -254,7 +254,7 @@ public class Server {
     public List<Boat> getBoatList() {
         List<Boat> toRet = new ArrayList<Boat>();
         for (Object o : server.e.b) {
-            if (o instanceof fl) {
+            if (o instanceof gc) {
                 toRet.add(new Boat((gc) o));
             }
         }
@@ -268,7 +268,7 @@ public class Server {
     public List<BaseEntity> getEntityList() {
         List<BaseEntity> toRet = new ArrayList<BaseEntity>();
         for (Object o : server.e.b) {
-            if (o instanceof ge || o instanceof ba || o instanceof ax) {
+            if (o instanceof gu || o instanceof bk || o instanceof bf) {
                 toRet.add(new Mob((lc) o));
             } else if (o instanceof kq) {
                 toRet.add(new Minecart((kq) o));
@@ -288,7 +288,7 @@ public class Server {
     public List<LivingEntity> getLivingEntityList() {
         List<LivingEntity> toRet = new ArrayList<LivingEntity>();
         for (Object o : server.e.b) {
-            if (o instanceof ge || o instanceof ba || o instanceof ax) {
+            if (o instanceof gu || o instanceof bk || o instanceof bf) {
                 toRet.add(new Mob((lc) o));
             } else if (o instanceof fi) {
                 toRet.add(((fi)o).getPlayer());
@@ -621,7 +621,7 @@ public class Server {
      * @return true if the chunk is loaded
      */
     public boolean isChunkLoaded(int x, int y, int z) {
-        return this.server.e.e(x, y, z);
+        return this.server.e.A.a(x >> 4, z >> 4);
     }
 
     /**

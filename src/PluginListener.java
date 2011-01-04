@@ -213,40 +213,6 @@ public class PluginListener {
     }
 
     /**
-     * Called when a player's inventory is modified.
-     * 
-     * @param player
-     *            player who's inventory was modified
-     * @return true if you want any changes to be reverted
-     */
-    public boolean onInventoryChange(Player player) {
-        return false;
-    }
-
-    /**
-     * Called when a player's crafting table inventory is modified. This is the
-     * 2x2 box in a player's inventory, not the actual 3x3 crafting table!
-     * 
-     * @param player
-     *            player who's crafting table was modified
-     * @return true if you want any changes to be reverted
-     */
-    public boolean onCraftInventoryChange(Player player) {
-        return false;
-    }
-
-    /**
-     * Called when a player's equipment inventory is modified.
-     * 
-     * @param player
-     *            player who's equipment was modified
-     * @return true if you want any changes to be reverted
-     */
-    public boolean onEquipmentChange(Player player) {
-        return false;
-    }
-
-    /**
      * Called when a player drops an item.
      * 
      * @param player
@@ -562,6 +528,56 @@ public class PluginListener {
      * @return true if you wish to cancel this change
      */
     public boolean onSignChange(Player player, Sign sign) {
+        return false;
+    }
+	
+    /**
+     * Called when a leaf block is about to decay.
+     *
+     * @param block The leaf block about to decay
+     * @return true if you wish to stop the block from decaying
+     */
+    public boolean onLeafDecay(Block block) {
+        return false;
+    }
+	
+	/**
+     * Called when the player places an inventory item, or adds amount to an existing inventory slot.
+     *
+     * @param player Player who placed their inventory item
+     * @param inventory The inventory that had an item placed
+     * @param placedItem The item (and amount) that was placed.
+     * @param oldSlot The slot that the item was placed in.
+     * @return true if you want the placement to be undone; false otherwise
+     */
+    public boolean onInventoryPlaceItem(Player player, Inventory inventory, Item placedItem, Integer slot) {
+        return false;
+    }
+
+    /**
+     * Called when the player takes an inventory item, whether they selected half or the whole slot.
+     *
+     * @param player Player who took their inventory item
+     * @param inventory The inventory that had an item taken
+     * @param takenItem The item (and amount) that was taken
+     * @param oldSlot The slot that the item was taken from.
+     * @return true if you want the taking to be undone; false otherwise
+     */
+    public boolean onInventoryTakeItem(Player player, Inventory inventory, Item takenItem, Integer slot) {
+        return false;
+    }
+
+    /**
+     * Called when a slot's contents are swapped with the contents of the cursor.
+     *
+     * @param player Player who swapped their inventory item
+     * @param inventory The inventory that had an item swapped
+     * @param slot The slot that had items swapped
+     * @param oldItemInSlot The old item in the slot, which is now on the cursor
+     * @param newItemInSlot The new item in the slot, which was on the cursor
+     * @return true if you want the swap to be undone; false otherwise
+     */
+    public boolean onInventoryCursorSwap(Player player, Inventory inventory, Integer slot, Item oldItemInSlot, Item newItemInSlot) {
         return false;
     }
 }
