@@ -1,20 +1,18 @@
+public class PlayerInventory extends ItemArray<OInventoryPlayer> implements Inventory {
+    private final OEntityPlayerMP user;
 
-public class PlayerInventory extends ItemArray<ii> implements Inventory {
-    private final fi user;
-    
     public PlayerInventory(Player player) {
-        super(player.getUser().an);
+        super(player.getUser().i);
         user = player.getUser();
     }
 
     public void giveItem(int itemId, int amount) {
         if (amount == -1) {
             int emptySlot = getEmptySlot();
-            if (emptySlot == -1) {
+            if (emptySlot == -1)
                 user.getPlayer().giveItemDrop(itemId, -1);
-            } else {
+            else
                 addItem(new Item(itemId, 255, emptySlot));
-            }
             return;
         }
 
@@ -44,26 +42,23 @@ public class PlayerInventory extends ItemArray<ii> implements Inventory {
 
             int emptySlot = getEmptySlot();
             if (emptySlot == -1)
-            {
                 break;
-            }
-            
+
             addItem(new Item(itemId, amountToAdd, emptySlot));
             temp -= 64;
         } while (temp > 0);
 
-        if (temp > 0) {
+        if (temp > 0)
             user.getPlayer().giveItemDrop(itemId, temp);
-        }
     }
 
     public void update() {
-        user.k();
+        user.l();
     }
 
     /**
      * Returns a String value representing this PlayerInventory
-     *
+     * 
      * @return String representation of this PlayerInventory
      */
     @Override
@@ -73,7 +68,7 @@ public class PlayerInventory extends ItemArray<ii> implements Inventory {
 
     /**
      * Returns the owner of this PlayerInventory
-     *
+     * 
      * @return Player
      */
     public Player getPlayer() {

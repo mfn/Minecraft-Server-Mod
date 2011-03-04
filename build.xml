@@ -1,28 +1,77 @@
-<project name="build" basedir="." default="jar">
-    <path id="classpath">
-        <fileset dir="lib" includes="*.jar"/>
-    </path>
-    <target name="clean">
-        <delete dir="build"/>
-    </target>
-    <target name="server">
-        <get src="http://minecraft.net/download/minecraft_server.jar" dest="lib"
-            verbose="on" usetimestamp="true" skipexisting="true" retries="0"/>
-    </target>
-    <target name="compile" depends="server">
-        <mkdir dir="build/classes"/>
-        <javac srcdir="src" destdir="build/classes" classpathref="classpath"
-            includeantruntime="false" debug="true"/>
-    </target>
-    <target name="jar" depends="compile" description="Create JAR for the whole MOD">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/Minecraft_Mod_ocat.jar">
-            <fileset dir="build/classes"/>
-            <fileset dir="src" includes="*.java"/>
-            <manifest>
-                <attribute name="Main-Class" value="Main"/>
-                <attribute name="Class-Path" value="minecraft_server.jar mysql-connector-java-bin.jar plugins/"/>
-            </manifest>
-        </jar>
-    </target>
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="hMod Full Package Compiler" default="dist" basedir=".">
+	<description>
+		This script will build the hMod jarfile and zip appropriate files.
+	</description>
+
+	<property name="src" location="src" />
+	<property name="lib" location="lib" />
+	<property name="build" location="build" />
+	<property name="dist" location="dist" />
+
+
+	<path id="classpath">
+		<fileset dir="jarjar">
+			<include name="minecraft_servero.jar" />
+			<include name="jarjar.jar" />
+		</fileset>
+	</path>
+
+	<target name="verifyRequirements" description="Checks if the necessary requirements for building Handler are fulfilled">
+		<available classname="javax.script.ScriptContext" property="JDK6.present" />
+		<fail unless="JDK6.present" message="JDK 6 or greater is required." />
+	</target>
+
+	<target name="init" depends="clean, verifyRequirements" description="Create the output directories.">
+		<mkdir dir="${build}" />
+		<mkdir dir="${build}/classes" />
+		<mkdir dir="${dist}" />
+		<mkdir dir="${dist}/plugins" />
+		<mkdir dir="${dist}/log" />
+	</target>
+
+	<target name="compile" depends="init" description="Compile the source.">
+		<javac destdir="${build}/classes" optimize="on" debug="on" debuglevel="lines,vars,source" source="1.6" target="1.6" nowarn="off">
+			<src path="${src}" />
+			<classpath refid="classpath" />
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile" description="Create the jar file">
+		<jar destfile="${dist}/Minecraft_Mod.jar">
+			<fileset dir="${build}/classes" />
+			<manifest>
+				<attribute name="Main-Class" value="Main" />
+				<attribute name="Class-Path" value="minecraft_servero.jar jarjar.jar mysql-connector-java-bin.jar plugins/" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="dist" depends="jar" >
+		<copy todir="${dist}">
+			<fileset dir="files">
+				<include name="*.sql" />
+				<include name="*.txt" />
+				<include name="*.bat" />
+				<include name="*.sh" />
+			</fileset>
+			<fileset dir="jarjar">
+				<include name="minecraft_server.jar" />
+				<include name="jarjar.jar" />
+				<include name="mysql-connector-java-bin.jar" />
+				<include name="rules.rules" />
+			</fileset>
+		</copy>
+		<copy todir="${dist}/plugins">
+			<fileset dir="files/plugins">
+				<include name="*.txt" />
+			</fileset>
+		</copy>
+		<zip destfile="${dist}/hMod.zip" basedir="${dist}" />
+	</target>
+
+	<target name="clean" description="Remove the output directories">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
 </project>

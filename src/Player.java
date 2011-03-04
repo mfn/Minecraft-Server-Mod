@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.minecraft.server.MinecraftServer;
 
 /**
@@ -15,36 +16,43 @@ import net.minecraft.server.MinecraftServer;
  * @author James
  */
 public class Player extends HumanEntity implements MessageReceiver {
-    private static final Logger log = Logger.getLogger("Minecraft");
-    private int id = -1;
-    private String prefix = "";
-    private String[] commands = new String[]{""};
-    private ArrayList<String> groups = new ArrayList<String>();
-    private String[] ips = new String[]{""};
-    private boolean ignoreRestrictions = false;
-    private boolean admin = false;
-    private boolean canModifyWorld = false;
-    private boolean muted = false;
-    private PlayerInventory inventory;
-    private List<String> onlyOneUseKits = new ArrayList<String>();
-    private Pattern badChatPattern = Pattern.compile("[^ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\\\\\]^_'abcdefghijklmnopqrstuvwxyz{|}~\u2302\u00C7\u00FC\u00E9\u00E2\u00E4\u00E0\u00E5\u00E7\u00EA\u00EB\u00E8\u00EF\u00EE\u00EC\u00C4\u00C5\u00C9\u00E6\u00C6\u00F4\u00F6\u00F2\u00FB\u00F9\u00FF\u00D6\u00DC\u00F8\u00A3\u00D8\u00D7\u0192\u00E1\u00ED\u00F3\u00FA\u00F1\u00D1\u00AA\u00BA\u00BF\u00AE\u00AC\u00BD\u00BC\u00A1\u00AB\u00BB]");
+
+    private static final Logger log                = Logger.getLogger("Minecraft");
+    private int                 id                 = -1;
+    private String              prefix             = "";
+    private String[]            commands           = new String[] { "" };
+    private ArrayList<String>   groups             = new ArrayList<String>();
+    private String[]            ips                = new String[] { "" };
+    private boolean             ignoreRestrictions = false;
+    private boolean             admin              = false;
+    private boolean             canModifyWorld     = false;
+    private boolean             muted              = false;
+    private PlayerInventory     inventory;
+    private List<String>        onlyOneUseKits     = new ArrayList<String>();
+    private Pattern             badChatPattern     = Pattern.compile("[^ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\[\\\\\\]^_'abcdefghijklmnopqrstuvwxyz{|}~\u2302\u00C7\u00FC\u00E9\u00E2\u00E4\u00E0\u00E5\u00E7\u00EA\u00EB\u00E8\u00EF\u00EE\u00EC\u00C4\u00C5\u00C9\u00E6\u00C6\u00F4\u00F6\u00F2\u00FB\u00F9\u00FF\u00D6\u00DC\u00F8\u00A3\u00D8\u00D7\u0192\u00E1\u00ED\u00F3\u00FA\u00F1\u00D1\u00AA\u00BA\u00BF\u00AE\u00AC\u00BD\u00BC\u00A1\u00AB\u00BB]");
 
     /**
      * Creates an empty player. Add the player by calling {@link #setUser(es)}
      */
     public Player() {
     }
-    
+
+    public Player(OEntityPlayerMP player) {
+        setUser(player);
+    }
+
     /**
      * Returns the entity we're wrapping.
+     * 
      * @return
      */
-    public fi getEntity() {
-        return (fi)entity;
+    public OEntityPlayerMP getEntity() {
+        return (OEntityPlayerMP) entity;
     }
-    
+
     /**
      * Returns if the player is still connected
+     * 
      * @return
      */
     public boolean isConnected() {
@@ -59,7 +67,7 @@ public class Player extends HumanEntity implements MessageReceiver {
     public void kick(String reason) {
         getEntity().a.a(reason);
     }
-    
+
     /**
      * Sends player a notification
      * 
@@ -85,7 +93,8 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @param item
      */
     public void giveItem(Item item) {
-        giveItem(item.getItemId(), item.getAmount());
+        inventory.addItem(item);
+        inventory.update();
     }
 
     /**
@@ -104,16 +113,15 @@ public class Player extends HumanEntity implements MessageReceiver {
             kick("Illegal characters '" + m.group() + "' hex: " + Integer.toHexString(message.charAt(m.start())) + " in chat");
             return;
         }
-        if (message.startsWith("/")) {
+        if (message.startsWith("/"))
             command(message);
-        } else {
+        else {
             if (isMuted()) {
                 sendMessage(Colors.Rose + "You are currently muted.");
                 return;
             }
-            if ((Boolean) etc.getLoader().callHook(PluginLoader.Hook.CHAT, new Object[]{this, message})) {
+            if ((Boolean) etc.getLoader().callHook(PluginLoader.Hook.CHAT, new Object[] { this, message }))
                 return;
-            }
 
             String chat = "<" + getColor() + getName() + Colors.White + "> " + message;
             log.log(Level.INFO, "<" + getName() + "> " + message);
@@ -129,66 +137,57 @@ public class Player extends HumanEntity implements MessageReceiver {
      */
     public void command(String command) {
         try {
-            if (etc.getInstance().isLogging()) {
+            if (etc.getInstance().isLogging())
                 log.info("Command used by " + getName() + " " + command);
-            }
+
             String[] split = command.split(" ");
-            if ((Boolean) etc.getLoader().callHook(PluginLoader.Hook.COMMAND, new Object[]{this, split})) {
+            String cmd = split[0];
+
+            if ((Boolean) etc.getLoader().callHook(PluginLoader.Hook.COMMAND, new Object[] { this, split }))
                 return; // No need to go on, commands were parsed.
-            }
-            if (!canUseCommand(split[0]) && !split[0].startsWith("/#")) {
-                if (etc.getInstance().showUnknownCommand()) {
+            if (!canUseCommand(cmd) && !cmd.startsWith("/#")) {
+                if (etc.getInstance().showUnknownCommand())
                     sendMessage(Colors.Rose + "Unknown command.");
-                }
                 return;
             }
-            
+
             // Remove '/' before checking.
-            if (ServerConsoleCommands.parseServerConsoleCommand(this, split[0].substring(1), split)) {
+            if (ServerConsoleCommands.parseServerConsoleCommand(this, cmd.substring(1), split)) {
                 // Command parsed successfully...
-            } else if (split[0].equalsIgnoreCase("/help")) {
+            } else if (cmd.equalsIgnoreCase("/help")) {
                 // Meh, not the greatest way, but not the worst either.
                 List<String> availableCommands = new ArrayList<String>();
-                for (Entry<String, String> entry : etc.getInstance().getCommands().entrySet()) {
+                for (Entry<String, String> entry : etc.getInstance().getCommands().entrySet())
                     if (canUseCommand(entry.getKey())) {
-                        if (entry.getKey().equals("/kit") && !etc.getDataSource().hasKits()) {
+                        if (entry.getKey().equals("/kit") && !etc.getDataSource().hasKits())
                             continue;
-                        }
-                        if (entry.getKey().equals("/listwarps") && !etc.getDataSource().hasWarps(this)) {
+                        if (entry.getKey().equals("/listwarps") && !etc.getDataSource().hasWarps(this))
                             continue;
-                        }
 
                         availableCommands.add(entry.getKey() + " " + entry.getValue());
                     }
-                }
 
                 sendMessage(Colors.Blue + "Available commands (Page " + (split.length == 2 ? split[1] : "1") + " of " + (int) Math.ceil((double) availableCommands.size() / (double) 7) + ") [] = required <> = optional:");
-                if (split.length == 2) {
+                if (split.length == 2)
                     try {
                         int amount = Integer.parseInt(split[1]);
 
-                        if (amount > 0) {
+                        if (amount > 0)
                             amount = (amount - 1) * 7;
-                        } else {
+                        else
                             amount = 0;
-                        }
 
-                        for (int i = amount; i < amount + 7; i++) {
-                            if (availableCommands.size() > i) {
+                        for (int i = amount; i < amount + 7; i++)
+                            if (availableCommands.size() > i)
                                 sendMessage(Colors.Rose + availableCommands.get(i));
-                            }
-                        }
                     } catch (NumberFormatException ex) {
                         sendMessage(Colors.Rose + "Not a valid page number.");
                     }
-                } else {
-                    for (int i = 0; i < 7; i++) {
-                        if (availableCommands.size() > i) {
+                else
+                    for (int i = 0; i < 7; i++)
+                        if (availableCommands.size() > i)
                             sendMessage(Colors.Rose + availableCommands.get(i));
-                        }
-                    }
-                }
-            } else if (split[0].equalsIgnoreCase("/mute")) {
+            } else if (cmd.equalsIgnoreCase("/mute")) {
                 if (split.length != 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /mute [player]");
                     return;
@@ -197,15 +196,13 @@ public class Player extends HumanEntity implements MessageReceiver {
                 Player player = etc.getServer().matchPlayer(split[1]);
 
                 if (player != null) {
-                    if (player.toggleMute()) {
+                    if (player.toggleMute())
                         sendMessage(Colors.Rose + "player was muted");
-                    } else {
+                    else
                         sendMessage(Colors.Rose + "player was unmuted");
-                    }
-                } else {
+                } else
                     sendMessage(Colors.Rose + "Can't find player " + split[1]);
-                }
-            } else if ((split[0].equalsIgnoreCase("/msg") || split[0].equalsIgnoreCase("/tell")) || split[0].equalsIgnoreCase("/m")) {
+            } else if ((cmd.equalsIgnoreCase("/msg") || cmd.equalsIgnoreCase("/tell")) || cmd.equalsIgnoreCase("/m")) {
                 if (split.length < 3) {
                     sendMessage(Colors.Rose + "Correct usage is: /msg [player] [message]");
                     return;
@@ -225,41 +222,37 @@ public class Player extends HumanEntity implements MessageReceiver {
 
                     player.sendMessage("(MSG) " + getColor() + "<" + getName() + "> " + Colors.White + etc.combineSplit(2, split, " "));
                     sendMessage("(MSG) " + getColor() + "<" + getName() + "> " + Colors.White + etc.combineSplit(2, split, " "));
-                } else {
+                } else
                     sendMessage(Colors.Rose + "Couldn't find player " + split[1]);
-                }
-            } else if (split[0].equalsIgnoreCase("/kit") && etc.getDataSource().hasKits()) {
+            } else if (cmd.equalsIgnoreCase("/kit") && etc.getDataSource().hasKits()) {
                 if (split.length != 2 && split.length != 3) {
                     sendMessage(Colors.Rose + "Available kits" + Colors.White + ": " + etc.getDataSource().getKitNames(this));
                     return;
                 }
 
                 Player toGive = this;
-                if (split.length > 2 && canIgnoreRestrictions()) {
+                if (split.length > 2 && canIgnoreRestrictions())
                     toGive = etc.getServer().matchPlayer(split[2]);
-                }
 
                 Kit kit = etc.getDataSource().getKit(split[1]);
                 if (toGive != null) {
                     if (kit != null) {
-                        if (!isInGroup(kit.Group) && !kit.Group.equals("")) {
+                        if (!isInGroup(kit.Group) && !kit.Group.equals(""))
                             sendMessage(Colors.Rose + "That kit does not exist.");
-                        } else if (onlyOneUseKits.contains(kit.Name)) {
+                        else if (onlyOneUseKits.contains(kit.Name))
                             sendMessage(Colors.Rose + "You can only get this kit once per login.");
-                        } else if (MinecraftServer.b.containsKey(getName() + " " + kit.Name)) {
+                        else if (MinecraftServer.b.containsKey(getName() + " " + kit.Name))
                             sendMessage(Colors.Rose + "You can't get this kit again for a while.");
-                        } else {
-                            if (!canIgnoreRestrictions()) {
-                                if (kit.Delay >= 0) {
+                        else {
+                            if (!canIgnoreRestrictions())
+                                if (kit.Delay >= 0)
                                     MinecraftServer.b.put(getName() + " " + kit.Name, kit.Delay);
-                                } else {
+                                else
                                     onlyOneUseKits.add(kit.Name);
-                                }
-                            }
 
                             log.info(getName() + " got a kit!");
                             toGive.sendMessage(Colors.Rose + "Enjoy this kit!");
-                            for (Map.Entry<String, Integer> entry : kit.IDs.entrySet()) {
+                            for (Map.Entry<String, Integer> entry : kit.IDs.entrySet())
                                 try {
                                     int itemId = 0;
                                     try {
@@ -273,15 +266,12 @@ public class Player extends HumanEntity implements MessageReceiver {
                                     log.info("Got an exception while giving out a kit (Kit name \"" + kit.Name + "\"). Are you sure all the Ids are numbers?");
                                     sendMessage(Colors.Rose + "The server encountered a problem while giving the kit :(");
                                 }
-                            }
                         }
-                    } else {
+                    } else
                         sendMessage(Colors.Rose + "That kit does not exist.");
-                    }
-                } else {
+                } else
                     sendMessage(Colors.Rose + "That user does not exist.");
-                }
-            } else if (split[0].equalsIgnoreCase("/tp")) {
+            } else if (cmd.equalsIgnoreCase("/tp")) {
                 if (split.length < 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /tp [player]");
                     return;
@@ -297,10 +287,9 @@ public class Player extends HumanEntity implements MessageReceiver {
 
                     log.info(getName() + " teleported to " + player.getName());
                     teleportTo(player);
-                } else {
+                } else
                     sendMessage(Colors.Rose + "Can't find user " + split[1] + ".");
-                }
-            } else if ((split[0].equalsIgnoreCase("/tphere") || split[0].equalsIgnoreCase("/s"))) {
+            } else if ((cmd.equalsIgnoreCase("/tphere") || cmd.equalsIgnoreCase("/s"))) {
                 if (split.length < 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /tphere [player]");
                     return;
@@ -316,111 +305,205 @@ public class Player extends HumanEntity implements MessageReceiver {
 
                     log.info(getName() + " teleported " + player.getName() + " to their self.");
                     player.teleportTo(this);
-                } else {
+                } else
                     sendMessage(Colors.Rose + "Can't find user " + split[1] + ".");
-                }
-            } else if (split[0].equalsIgnoreCase("/playerlist") || split[0].equalsIgnoreCase("/who")) {
+            } else if (cmd.equalsIgnoreCase("/playerlist") || cmd.equalsIgnoreCase("/who"))
                 sendMessage(Colors.Rose + "Player list (" + etc.getMCServer().f.b.size() + "/" + etc.getInstance().getPlayerLimit() + "): " + Colors.White + etc.getMCServer().f.c());
-            } else if (split[0].equalsIgnoreCase("/item") || split[0].equalsIgnoreCase("/i") || split[0].equalsIgnoreCase("/give")) {
+            else if (cmd.equalsIgnoreCase("/item") || cmd.equalsIgnoreCase("/i") || cmd.equalsIgnoreCase("/give")) {
                 if (split.length < 2) {
-                    if (canIgnoreRestrictions()) {
-                        sendMessage(Colors.Rose + "Correct usage is: /item [itemid] <amount> <player> (optional)");
-                    } else {
-                        sendMessage(Colors.Rose + "Correct usage is: /item [itemid] <amount>");
-                    }
+                    if (canIgnoreRestrictions())
+                        sendMessage(Colors.Rose + "Correct usage is: /item [itemid] <amount> <damage> <player> (optional)");
+                    else
+                        sendMessage(Colors.Rose + "Correct usage is: /item [itemid] <amount> <damage>");
                     return;
                 }
 
                 Player toGive = this;
-                if (split.length == 4 && canIgnoreRestrictions()) {
-                    toGive = etc.getServer().matchPlayer(split[3]);
-                }
-
-                if (toGive != null) {
-                    try {
-                        int itemId = 0;
+                int itemId = 0, amount = 1, damage = 0;
+                try {
+                    if (split.length > 1)
                         try {
                             itemId = Integer.parseInt(split[1]);
                         } catch (NumberFormatException n) {
                             itemId = etc.getDataSource().getItem(split[1]);
                         }
-                        int amount = 1;
-                        if (split.length > 2) {
-                            amount = Integer.parseInt(split[2]);
-                        }
-
-                        String itemIdstr = Integer.toString(itemId);
-                        if (amount <= 0 && !isAdmin()) {
+                    if (split.length > 2) {
+                        amount = Integer.parseInt(split[2]);
+                        if (amount <= 0 && !isAdmin())
                             amount = 1;
-                        }
 
-                        if (amount > 64 && !canIgnoreRestrictions()) {
+                        if (amount > 64 && !canIgnoreRestrictions())
                             amount = 64;
-                        }
-                        if (amount > 1024) {
+                        if (amount > 1024)
                             amount = 1024; // 16 stacks worth. More than enough.
-                        }
-                        
-                        boolean allowedItem = false;
-                        if ((!etc.getInstance().getAllowedItems().isEmpty()) && (!canIgnoreRestrictions()) && (etc.getInstance().getAllowedItems().contains(itemId))) {
-                            allowedItem = true;
-                        } else allowedItem = true;
-                        if ((!etc.getInstance().getDisallowedItems().isEmpty()) && (!canIgnoreRestrictions()) && (etc.getInstance().getDisallowedItems().contains(itemId)))
-                            allowedItem = false;
-                        
-                        if (Item.isValidItem(itemId)) {
-                            if (allowedItem || canIgnoreRestrictions()) {
-                                log.log(Level.INFO, "Giving " + toGive.getName() + " some " + itemId);
-                                toGive.giveItem(itemId, amount);
-
-                                if (toGive.getName().equalsIgnoreCase(getName())) {
-                                    sendMessage(Colors.Rose + "There you go c:");
-                                } else {
-                                    sendMessage(Colors.Rose + "Gift given! :D");
-                                    toGive.sendMessage(Colors.Rose + "Enjoy your gift! :D");
-                                }
-                            } else if (!allowedItem && !canIgnoreRestrictions()) {
-                                sendMessage(Colors.Rose + "You are not allowed to spawn that item.");
-                            }
-                        } else {
-                            sendMessage(Colors.Rose + "No item with ID " + split[1]);
-                        }
-                    } catch (NumberFormatException localNumberFormatException) {
-                        sendMessage(Colors.Rose + "Improper ID and/or amount.");
                     }
-                } else {
-                    sendMessage(Colors.Rose + "Can't find user " + split[3]);
-                }
-            } else if (split[0].equalsIgnoreCase("/tempban")) {
-                // /tempban MINUTES HOURS DAYS
-                if (split.length == 1) {
+                    if (split.length == 4) {
+                        int temp = -1;
+                        try {
+                            temp = Integer.parseInt(split[3]);
+                        } catch (NumberFormatException n) {
+                            if (canIgnoreRestrictions())
+                                toGive = etc.getServer().matchPlayer(split[3]);
+                        }
+                        if (temp > -1 && temp < 50)
+                            damage = temp;
+                    } else if (split.length == 5) {
+                        damage = Integer.parseInt(split[3]);
+                        if (damage < 0 && damage > 49)
+                            damage = 0;
+                        if (canIgnoreRestrictions())
+                            toGive = etc.getServer().matchPlayer(split[4]);
+                    }
+
+                } catch (NumberFormatException localNumberFormatException) {
+                    sendMessage(Colors.Rose + "Improper ID and/or amount.");
                     return;
                 }
+
+                if (toGive != null) {
+
+                    boolean allowedItem = etc.getInstance().getAllowedItems().isEmpty() || etc.getInstance().getAllowedItems().contains(itemId);
+
+                    if (!etc.getInstance().getDisallowedItems().isEmpty() && etc.getInstance().getDisallowedItems().contains(itemId))
+                        allowedItem = false;
+
+                    if (Item.isValidItem(itemId)) {
+                        if (allowedItem || canIgnoreRestrictions()) {
+                            Item i = new Item(itemId, amount, -1, damage);
+                            log.log(Level.INFO, "Giving " + toGive.getName() + " some " + i.toString());
+                            // toGive.giveItem(itemId, amount);
+                            Inventory inv = toGive.getInventory();
+                            ArrayList<Item> list = new ArrayList<Item>();
+                            for (Item it : inv.getContents())
+                                if (it != null && it.getItemId() == i.getItemId() && it.getDamage() == i.getDamage())
+                                    list.add(it);
+
+                            for (Item it : list) {
+                                if (it.getAmount() < 64) {
+                                    if (amount >= 64 - it.getAmount()) {
+                                        amount -= 64 - it.getAmount();
+                                        it.setAmount(64);
+                                        toGive.giveItem(it);
+                                    } else {
+                                        it.setAmount(it.getAmount() + amount);
+                                        amount = 0;
+                                        toGive.giveItem(it);
+                                    }
+                                }
+                            }
+                            if (amount != 0) {
+                                i.setAmount(64);
+                                while (amount > 64) {
+                                    amount -= 64;
+                                    toGive.giveItem(i);
+                                    i.setSlot(-1);
+                                }
+                                i.setAmount(amount);
+                                toGive.giveItem(i);
+                            }
+                            if (toGive.getName().equalsIgnoreCase(getName()))
+                                sendMessage(Colors.Rose + "There you go " + getName() + ".");
+                            else {
+                                sendMessage(Colors.Rose + "Gift given! :D");
+                                toGive.sendMessage(Colors.Rose + "Enjoy your gift! :D");
+                            }
+                        } else if (!allowedItem && !canIgnoreRestrictions())
+                            sendMessage(Colors.Rose + "You are not allowed to spawn that item.");
+                    } else
+                        sendMessage(Colors.Rose + "No item with ID " + split[1]);
+
+                } else
+                    sendMessage(Colors.Rose + "Can't find user " + split[3]);
+            } else if (cmd.equalsIgnoreCase("/cloth") || cmd.equalsIgnoreCase("/dye")) {
+                if (split.length < 3) {
+                    sendMessage(Colors.Rose + "Correct usage is: " + cmd + " [amount] [color]");
+                    return;
+                }
+                try {
+                    int amount = Integer.parseInt(split[1]);
+                    if (amount <= 0 && !isAdmin())
+                        amount = 1;
+
+                    if (amount > 64 && !canIgnoreRestrictions())
+                        amount = 64;
+                    if (amount > 1024)
+                        amount = 1024; // 16 stacks worth. More than enough.
+
+                    String color = split[2];
+                    if (split.length > 3)
+                        color += " " + split[3];
+                    Cloth.Color c = Cloth.Color.getColor(color.toLowerCase());
+                    if (c == null) {
+                        sendMessage(Colors.Rose + "Invalid color name!");
+                        return;
+                    }
+                    Item i = c.getItem();
+
+                    if (cmd.equalsIgnoreCase("/dye")) {
+                        i.setType(Item.Type.InkSack);
+                        // some1 had fun inverting this i guess .....
+                        i.setDamage(15 - i.getDamage());
+                    }
+                    i.setAmount(amount);
+                    log.log(Level.INFO, "Giving " + getName() + " some " + i.toString());
+
+                    Inventory inv = getInventory();
+                    ArrayList<Item> list = new ArrayList<Item>();
+                    for (Item it : inv.getContents())
+                        if (it != null && it.getItemId() == i.getItemId() && it.getDamage() == i.getDamage())
+                            list.add(it);
+
+                    for (Item it : list) {
+                        if (it.getAmount() < 64) {
+                            if (amount >= 64 - it.getAmount()) {
+                                amount -= 64 - it.getAmount();
+                                it.setAmount(64);
+                                giveItem(it);
+                            } else {
+                                it.setAmount(it.getAmount() + amount);
+                                amount = 0;
+                                giveItem(it);
+                            }
+                        }
+                    }
+                    if (amount != 0) {
+                        i.setAmount(64);
+                        while (amount > 64) {
+                            amount -= 64;
+                            giveItem(i);
+                            i.setSlot(-1);
+                        }
+                        i.setAmount(amount);
+                        giveItem(i);
+                    }
+                    sendMessage(Colors.Rose + "There you go " + getName() + ".");
+                } catch (NumberFormatException localNumberFormatException) {
+                    sendMessage(Colors.Rose + "Improper ID and/or amount.");
+                }
+
+            } else if (cmd.equalsIgnoreCase("/tempban")) {
+                // /tempban MINUTES HOURS DAYS
+                if (split.length == 1)
+                    return;
                 int minutes = 0, hours = 0, days = 0;
-                if (split.length >= 2) {
+                if (split.length >= 2)
                     minutes = Integer.parseInt(split[1]);
-                }
-                if (split.length >= 3) {
+                if (split.length >= 3)
                     hours = Integer.parseInt(split[2]);
-                }
-                if (split.length >= 4) {
+                if (split.length >= 4)
                     days = Integer.parseInt(split[3]);
-                }
                 Date date = new Date();
                 // date.
-            } else if (split[0].equalsIgnoreCase("/banlist")) {
+            } else if (cmd.equalsIgnoreCase("/banlist")) {
                 byte type = 0;
-                if (split.length == 2) {
-                    if (split[1].equalsIgnoreCase("ips")) {
+                if (split.length == 2)
+                    if (split[1].equalsIgnoreCase("ips"))
                         type = 1;
-                    }
-                }
-                if (type == 0) { // Regular user bans
+                if (type == 0)
                     sendMessage(Colors.Blue + "Ban list:" + Colors.White + " " + etc.getMCServer().f.getBans());
-                } else { // IP bans
+                else
                     sendMessage(Colors.Blue + "IP Ban list:" + Colors.White + " " + etc.getMCServer().f.getIpBans());
-                }
-            } else if (split[0].equalsIgnoreCase("/banip")) {
+            } else if (cmd.equalsIgnoreCase("/banip")) {
                 if (split.length < 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /banip [player] <reason> (optional) NOTE: this permabans IPs.");
                     return;
@@ -436,20 +519,18 @@ public class Player extends HumanEntity implements MessageReceiver {
 
                     // adds player to ban list
                     etc.getMCServer().f.c(player.getIP());
-                    etc.getLoader().callHook(PluginLoader.Hook.IPBAN, new Object[]{this, player, split.length >= 3 ? etc.combineSplit(2, split, " ") : ""});
+                    etc.getLoader().callHook(PluginLoader.Hook.IPBAN, new Object[] { this, player, split.length >= 3 ? etc.combineSplit(2, split, " ") : "" });
 
                     log.log(Level.INFO, "IP Banning " + player.getName() + " (IP: " + player.getIP() + ")");
                     sendMessage(Colors.Rose + "IP Banning " + player.getName() + " (IP: " + player.getIP() + ")");
 
-                    if (split.length > 2) {
+                    if (split.length > 2)
                         player.kick("IP Banned by " + getName() + ": " + etc.combineSplit(2, split, " "));
-                    } else {
+                    else
                         player.kick("IP Banned by " + getName() + ".");
-                    }
-                } else {
+                } else
                     sendMessage(Colors.Rose + "Can't find user " + split[1] + ".");
-                }
-            } else if (split[0].equalsIgnoreCase("/ban")) {
+            } else if (cmd.equalsIgnoreCase("/ban")) {
                 if (split.length < 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /ban [player] <reason> (optional)");
                     return;
@@ -466,36 +547,36 @@ public class Player extends HumanEntity implements MessageReceiver {
                     // adds player to ban list
                     etc.getServer().ban(player.getName());
 
-                    etc.getLoader().callHook(PluginLoader.Hook.BAN, new Object[]{this, player, split.length >= 3 ? etc.combineSplit(2, split, " ") : ""});
+                    etc.getLoader().callHook(PluginLoader.Hook.BAN, new Object[] { this, player, split.length >= 3 ? etc.combineSplit(2, split, " ") : "" });
 
-                    if (split.length > 2) {
+                    if (split.length > 2)
                         player.kick("Banned by " + getName() + ": " + etc.combineSplit(2, split, " "));
-                    } else {
+                    else
                         player.kick("Banned by " + getName() + ".");
-                    }
                     log.log(Level.INFO, "Banning " + player.getName());
                     sendMessage(Colors.Rose + "Banning " + player.getName());
                 } else {
-                    // sendMessage(Colors.Rose + "Can't find user " + split[1] + ".");
+                    // sendMessage(Colors.Rose + "Can't find user " + split[1] +
+                    // ".");
                     etc.getServer().ban(split[1]);
                     log.log(Level.INFO, "Banning " + split[1]);
                     sendMessage(Colors.Rose + "Banning " + split[1]);
                 }
-            } else if (split[0].equalsIgnoreCase("/unban")) {
+            } else if (cmd.equalsIgnoreCase("/unban")) {
                 if (split.length != 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /unban [player]");
                     return;
                 }
                 etc.getServer().unban(split[1]);
                 sendMessage(Colors.Rose + "Unbanned " + split[1]);
-            } else if (split[0].equalsIgnoreCase("/unbanip")) {
+            } else if (cmd.equalsIgnoreCase("/unbanip")) {
                 if (split.length != 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /unbanip [ip]");
                     return;
                 }
                 etc.getMCServer().f.d(split[1]);
                 sendMessage(Colors.Rose + "Unbanned " + split[1]);
-            } else if (split[0].equalsIgnoreCase("/kick")) {
+            } else if (cmd.equalsIgnoreCase("/kick")) {
                 if (split.length < 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /kick [player] <reason> (optional)");
                     return;
@@ -509,30 +590,27 @@ public class Player extends HumanEntity implements MessageReceiver {
                         return;
                     }
 
-                    etc.getLoader().callHook(PluginLoader.Hook.KICK, new Object[]{this, player, split.length >= 3 ? etc.combineSplit(2, split, " ") : ""});
+                    etc.getLoader().callHook(PluginLoader.Hook.KICK, new Object[] { this, player, split.length >= 3 ? etc.combineSplit(2, split, " ") : "" });
 
-                    if (split.length > 2) {
+                    if (split.length > 2)
                         player.kick("Kicked by " + getName() + ": " + etc.combineSplit(2, split, " "));
-                    } else {
+                    else
                         player.kick("Kicked by " + getName() + ".");
-                    }
                     log.log(Level.INFO, "Kicking " + player.getName());
                     sendMessage(Colors.Rose + "Kicking " + player.getName());
-                } else {
+                } else
                     sendMessage(Colors.Rose + "Can't find user " + split[1] + ".");
-                }
-            } else if (split[0].equalsIgnoreCase("/me")) {
+            } else if (cmd.equalsIgnoreCase("/me")) {
                 if (isMuted()) {
                     sendMessage(Colors.Rose + "You are currently muted.");
                     return;
                 }
-                if (split.length == 1) {
+                if (split.length == 1)
                     return;
-                }
                 String paramString2 = "* " + getColor() + getName() + Colors.White + " " + command.substring(command.indexOf(" ")).trim();
                 log.info("* " + getName() + " " + command.substring(command.indexOf(" ")).trim());
                 etc.getServer().messageAll(paramString2);
-            } else if (split[0].equalsIgnoreCase("/sethome")) {
+            } else if (cmd.equalsIgnoreCase("/sethome")) {
                 // player.k, player.l, player.m
                 // x, y, z
                 Warp home = new Warp();
@@ -541,34 +619,29 @@ public class Player extends HumanEntity implements MessageReceiver {
                 home.Name = getName();
                 etc.getInstance().changeHome(home);
                 sendMessage(Colors.Rose + "Your home has been set.");
-            } else if (split[0].equalsIgnoreCase("/spawn")) {
+            } else if (cmd.equalsIgnoreCase("/spawn"))
                 teleportTo(etc.getServer().getSpawnLocation());
-            } else if (split[0].equalsIgnoreCase("/setspawn")) {
-                etc.getMCServer().e.m = (int) Math.ceil(getX());
-                etc.getMCServer().e.o = (int) Math.ceil(getZ());
-                // Too lazy to actually update this considering it's not even
-                // used anyways.
-                // this.d.e.n = (int) Math.ceil(e.m); //Not that the Y axis
-                // really matters since it tries to get the highest point iirc.
+            else if (cmd.equalsIgnoreCase("/setspawn")) {
+                // New system in beta 1.3: WorldInfo.
+                OWorldInfo info = etc.getMCServer().e.q;
+                info.a((int) getX(), info.d(), (int) getZ());
 
                 log.info("Spawn position changed.");
                 sendMessage(Colors.Rose + "You have set the spawn to your current position.");
-            } else if (split[0].equalsIgnoreCase("/home")) {
+            } else if (cmd.equalsIgnoreCase("/home")) {
                 Warp home = null;
-                if (split.length > 1 && isAdmin()) {
+                if (split.length > 1 && isAdmin())
                     home = etc.getDataSource().getHome(split[1]);
-                } else {
+                else
                     home = etc.getDataSource().getHome(getName());
-                }
 
-                if (home != null) {
+                if (home != null)
                     teleportTo(home.Location);
-                } else if (split.length > 1 && isAdmin()) {
+                else if (split.length > 1 && isAdmin())
                     sendMessage(Colors.Rose + "That player home does not exist");
-                } else {
+                else
                     teleportTo(etc.getServer().getSpawnLocation());
-                }
-            } else if (split[0].equalsIgnoreCase("/warp")) {
+            } else if (cmd.equalsIgnoreCase("/warp")) {
                 if (split.length < 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /warp [warpname]");
                     return;
@@ -578,35 +651,31 @@ public class Player extends HumanEntity implements MessageReceiver {
                 if (split.length == 3 && canIgnoreRestrictions()) {
                     warp = etc.getDataSource().getWarp(split[1]);
                     toWarp = etc.getServer().matchPlayer(split[2]);
-                } else {
+                } else
                     warp = etc.getDataSource().getWarp(split[1]);
-                }
                 if (toWarp != null) {
                     if (warp != null) {
-                        if (!isInGroup(warp.Group) && !warp.Group.equals("")) {
+                        if (!isInGroup(warp.Group) && !warp.Group.equals(""))
                             sendMessage(Colors.Rose + "Warp not found.");
-                        } else {
+                        else {
                             toWarp.teleportTo(warp.Location);
                             toWarp.sendMessage(Colors.Rose + "Woosh!");
                         }
-                    } else {
+                    } else
                         sendMessage(Colors.Rose + "Warp not found");
-                    }
-                } else {
+                } else
                     sendMessage(Colors.Rose + "Player not found.");
-                }
             } else if (split[0].equalsIgnoreCase("/listwarps") && etc.getDataSource().hasWarps(this)) {
                 if (split.length != 2 && split.length != 3) {
                     sendMessage(Colors.Rose + "Available warps: " + Colors.White + etc.getDataSource().getWarpNames(this));
                     return;
                 }
-            } else if (split[0].equalsIgnoreCase("/setwarp")) {
+            } else if (cmd.equalsIgnoreCase("/setwarp")) {
                 if (split.length < 2) {
-                    if (canIgnoreRestrictions()) {
+                    if (canIgnoreRestrictions())
                         sendMessage(Colors.Rose + "Correct usage is: /setwarp [warpname] [group]");
-                    } else {
+                    else
                         sendMessage(Colors.Rose + "Correct usage is: /setwarp [warpname]");
-                    }
                     return;
                 }
                 if (split[1].contains(":")) {
@@ -616,14 +685,13 @@ public class Player extends HumanEntity implements MessageReceiver {
                 Warp warp = new Warp();
                 warp.Name = split[1];
                 warp.Location = getLocation();
-                if (split.length == 3) {
+                if (split.length == 3)
                     warp.Group = split[2];
-                } else {
+                else
                     warp.Group = "";
-                }
                 etc.getInstance().setWarp(warp);
                 sendMessage(Colors.Rose + "Created warp point " + split[1] + ".");
-            } else if (split[0].equalsIgnoreCase("/removewarp")) {
+            } else if (cmd.equalsIgnoreCase("/removewarp")) {
                 if (split.length < 2) {
                     sendMessage(Colors.Rose + "Correct usage is: /removewarp [warpname]");
                     return;
@@ -632,17 +700,15 @@ public class Player extends HumanEntity implements MessageReceiver {
                 if (warp != null) {
                     etc.getDataSource().removeWarp(warp);
                     sendMessage(Colors.Blue + "Warp removed.");
-                } else {
+                } else
                     sendMessage(Colors.Rose + "That warp does not exist");
-                }
-            } else if (split[0].equalsIgnoreCase("/lighter")) {
+            } else if (cmd.equalsIgnoreCase("/lighter")) {
                 if (MinecraftServer.b.containsKey(getName() + " lighter")) {
                     log.info(getName() + " failed to iron!");
                     sendMessage(Colors.Rose + "You can't create another lighter again so soon");
                 } else {
-                    if (!canIgnoreRestrictions()) {
+                    if (!canIgnoreRestrictions())
                         MinecraftServer.b.put(getName() + " lighter", Integer.valueOf(6000));
-                    }
                     log.info(getName() + " created a lighter!");
                     giveItem(259, 1);
                 }
@@ -650,54 +716,49 @@ public class Player extends HumanEntity implements MessageReceiver {
                 String str = command.substring(2);
                 log.info(getName() + " issued server command: " + str);
                 etc.getMCServer().a(str, getEntity().a);
-            } else if (split[0].equalsIgnoreCase("/time")) {
+            } else if (cmd.equalsIgnoreCase("/time")) {
                 if (split.length == 2) {
-                    if (split[1].equalsIgnoreCase("day")) {
+                    if (split[1].equalsIgnoreCase("day"))
                         etc.getServer().setRelativeTime(0);
-                    } else if (split[1].equalsIgnoreCase("night")) {
+                    else if (split[1].equalsIgnoreCase("night"))
                         etc.getServer().setRelativeTime(13000);
-                    } else if (split[1].equalsIgnoreCase("check")) {
+                    else if (split[1].equalsIgnoreCase("check"))
                         sendMessage(Colors.Rose + "The time is " + etc.getServer().getRelativeTime() + "! (RAW: " + etc.getServer().getTime() + ")");
-                    } else {
+                    else
                         try {
                             etc.getServer().setRelativeTime(Long.parseLong(split[1]));
                         } catch (NumberFormatException ex) {
                             sendMessage(Colors.Rose + "Please enter numbers, not letters.");
                         }
-                    }
                 } else if (split.length == 3) {
-                    if (split[1].equalsIgnoreCase("raw")) {
+                    if (split[1].equalsIgnoreCase("raw"))
                         try {
                             etc.getServer().setTime(Long.parseLong(split[2]));
                         } catch (NumberFormatException ex) {
                             sendMessage(Colors.Rose + "Please enter numbers, not letters.");
                         }
-                    }
                 } else {
                     sendMessage(Colors.Rose + "Correct usage is: /time [time|'day|night|check|raw'] (rawtime)");
                     return;
                 }
-            } else if (split[0].equalsIgnoreCase("/getpos")) {
+            } else if (cmd.equalsIgnoreCase("/getpos")) {
                 sendMessage("Pos X: " + getX() + " Y: " + getY() + " Z: " + getZ());
                 sendMessage("Rotation: " + getRotation() + " Pitch: " + getPitch());
 
                 double degreeRotation = ((getRotation() - 90) % 360);
-                if (degreeRotation < 0) {
+                if (degreeRotation < 0)
                     degreeRotation += 360.0;
-                }
                 sendMessage("Compass: " + etc.getCompassPointForDirection(degreeRotation) + " (" + (Math.round(degreeRotation * 10) / 10.0) + ")");
-            } else if (split[0].equalsIgnoreCase("/compass")) {
+            } else if (cmd.equalsIgnoreCase("/compass")) {
                 double degreeRotation = ((getRotation() - 90) % 360);
-                if (degreeRotation < 0) {
+                if (degreeRotation < 0)
                     degreeRotation += 360.0;
-                }
 
                 sendMessage(Colors.Rose + "Compass: " + etc.getCompassPointForDirection(degreeRotation));
-            } else if (split[0].equalsIgnoreCase("/motd")) {
-                for (String str : etc.getInstance().getMotd()) {
+            } else if (cmd.equalsIgnoreCase("/motd"))
+                for (String str : etc.getInstance().getMotd())
                     sendMessage(str);
-                }
-            } else if (split[0].equalsIgnoreCase("/spawnmob")) {
+            else if (cmd.equalsIgnoreCase("/spawnmob")) {
                 if (split.length == 1) {
                     sendMessage(Colors.Rose + "Correct usage is: /spawnmob [name] <amount>");
                     return;
@@ -710,7 +771,7 @@ public class Player extends HumanEntity implements MessageReceiver {
                 if (split.length == 2) {
                     Mob mob = new Mob(split[1], getLocation());
                     mob.spawn();
-                } else if (split.length == 3) {
+                } else if (split.length == 3)
                     try {
                         int mobnumber = Integer.parseInt(split[2]);
                         for (int i = 0; i < mobnumber; i++) {
@@ -726,37 +787,32 @@ public class Player extends HumanEntity implements MessageReceiver {
                             mob.spawn(new Mob(split[2]));
                         }
                     }
-                } else if (split.length == 4) {
+                else if (split.length == 4)
                     try {
                         int mobnumber = Integer.parseInt(split[3]);
-                        if (!Mob.isValid(split[2])) {
+                        if (!Mob.isValid(split[2]))
                             sendMessage(Colors.Rose + "Invalid rider. Name has to start with a capital like so: Pig");
-                        } else {
+                        else
                             for (int i = 0; i < mobnumber; i++) {
                                 Mob mob = new Mob(split[1], getLocation());
                                 mob.spawn(new Mob(split[2]));
                             }
-                        }
                     } catch (NumberFormatException nfe) {
                         sendMessage(Colors.Rose + "Invalid number of mobs.");
                     }
-                }
-            } else if (split[0].equalsIgnoreCase("/clearinventory")) {
+            } else if (cmd.equalsIgnoreCase("/clearinventory")) {
                 Player target = this;
-                if (split.length >= 2 && isAdmin()) {
+                if (split.length >= 2 && isAdmin())
                     target = etc.getServer().matchPlayer(split[1]);
-                }
                 if (target != null) {
                     Inventory inv = target.getInventory();
                     inv.clearContents();
                     inv.update();
-                    if (!target.getName().equals(getName())) {
+                    if (!target.getName().equals(getName()))
                         sendMessage(Colors.Rose + "Cleared " + target.getName() + "'s inventory.");
-                    }
-                } else {
+                } else
                     sendMessage(Colors.Rose + "Target not found");
-                }
-            } else if (split[0].equals("/mspawn")) {
+            } else if (cmd.equals("/mspawn")) {
                 if (split.length != 2) {
                     sendMessage(Colors.Rose + "You must specify what to change the mob spawner to.");
                     return;
@@ -772,22 +828,19 @@ public class Player extends HumanEntity implements MessageReceiver {
                     MobSpawner ms = (MobSpawner) etc.getServer().getComplexBlock(block.getX(), block.getY(), block.getZ());
                     if (ms != null)
                         ms.setSpawn(split[1]);
-                } else {
+                } else
                     sendMessage(Colors.Rose + "You are not targeting a mob spawner.");
-                }
             } else {
                 log.info(getName() + " tried command " + command);
-                if (etc.getInstance().showUnknownCommand()) {
+                if (etc.getInstance().showUnknownCommand())
                     sendMessage(Colors.Rose + "Unknown command");
-                }
             }
         } catch (Throwable ex) { // Might as well try and catch big exceptions
             // before the server crashes from a stack
             // overflow or something
             log.log(Level.SEVERE, "Exception in command handler (Report this to hey0 unless you did something dumb like enter letters as numbers):", ex);
-            if (isAdmin()) {
+            if (isAdmin())
                 sendMessage(Colors.Rose + "Exception occured. Check the server for more info.");
-            }
         }
     }
 
@@ -818,17 +871,16 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @param amount
      */
     public void giveItemDrop(int itemId, int amount) {
-        fi player = getEntity();
-        if (amount == -1) {
-            player.b(new il(itemId, 255));
-        } else {
+        OEntityPlayerMP player = getEntity();
+        if (amount == -1)
+            player.a(new OItemStack(itemId, 255, 0));
+        else {
             int temp = amount;
             do {
-                if (temp - 64 >= 64) {
-                    player.b(new il(itemId, 64));
-                } else {
-                    player.b(new il(itemId, temp));
-                }
+                if (temp - 64 >= 64)
+                    player.a(new OItemStack(itemId, 64, 0));
+                else
+                    player.a(new OItemStack(itemId, temp, 0));
                 temp -= 64;
             } while (temp > 0);
         }
@@ -841,50 +893,39 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @return
      */
     public boolean canUseCommand(String command) {
-        for (String str : commands) {
-            if (str.equalsIgnoreCase(command)) {
+        for (String str : commands)
+            if (str.equalsIgnoreCase(command))
                 return true;
-            }
-        }
 
         for (String str : groups) {
             Group g = etc.getDataSource().getGroup(str);
-            if (g != null) {
-                if (recursiveUseCommand(g, command)) {
+            if (g != null)
+                if (recursiveUseCommand(g, command))
                     return true;
-                }
-            }
         }
 
         if (hasNoGroups()) {
             Group def = etc.getInstance().getDefaultGroup();
-            if (def != null) {
-                if (recursiveUseCommand(def, command)) {
+            if (def != null)
+                if (recursiveUseCommand(def, command))
                     return true;
-                }
-            }
         }
 
         return false;
     }
 
     private boolean recursiveUseCommand(Group g, String command) {
-        for (String str : g.Commands) {
-            if (str.equalsIgnoreCase(command) || str.equals("*")) {
+        for (String str : g.Commands)
+            if (str.equalsIgnoreCase(command) || str.equals("*"))
                 return true;
-            }
-        }
 
-        if (g.InheritedGroups != null) {
+        if (g.InheritedGroups != null)
             for (String str : g.InheritedGroups) {
                 Group g2 = etc.getDataSource().getGroup(str);
-                if (g2 != null) {
-                    if (recursiveUseCommand(g2, command)) {
+                if (g2 != null)
+                    if (recursiveUseCommand(g2, command))
                         return true;
-                    }
-                }
             }
-        }
         return false;
     }
 
@@ -895,44 +936,33 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @return
      */
     public boolean isInGroup(String group) {
-        if (group != null) {
-            if (etc.getInstance().getDefaultGroup() != null) {
-                if (group.equalsIgnoreCase(etc.getInstance().getDefaultGroup().Name)) {
+        if (group != null)
+            if (etc.getInstance().getDefaultGroup() != null)
+                if (group.equalsIgnoreCase(etc.getInstance().getDefaultGroup().Name))
                     return true;
-                }
-            }
-        }
-        for (String str : groups) {
-            if (recursiveUserInGroup(etc.getDataSource().getGroup(str), group)) {
+        for (String str : groups)
+            if (recursiveUserInGroup(etc.getDataSource().getGroup(str), group))
                 return true;
-            }
-        }
         return false;
     }
 
     private boolean recursiveUserInGroup(Group g, String group) {
-        if (g == null || group == null) {
+        if (g == null || group == null)
             return false;
-        }
 
-        if (g.Name.equalsIgnoreCase(group)) {
+        if (g.Name.equalsIgnoreCase(group))
             return true;
-        }
 
-        if (g.InheritedGroups != null) {
+        if (g.InheritedGroups != null)
             for (String str : g.InheritedGroups) {
-                if (g.Name.equalsIgnoreCase(str)) {
+                if (g.Name.equalsIgnoreCase(str))
                     return true;
-                }
 
                 Group g2 = etc.getDataSource().getGroup(str);
-                if (g2 != null) {
-                    if (recursiveUserInGroup(g2, group)) {
+                if (g2 != null)
+                    if (recursiveUserInGroup(g2, group))
                         return true;
-                    }
-                }
             }
-        }
         return false;
     }
 
@@ -945,15 +975,13 @@ public class Player extends HumanEntity implements MessageReceiver {
     public boolean hasControlOver(Player player) {
         boolean isInGroup = false;
 
-        if (player.hasNoGroups()) {
+        if (player.hasNoGroups())
             return true;
-        }
         for (String str : player.getGroups()) {
-            if (isInGroup(str)) {
+            if (isInGroup(str))
                 isInGroup = true;
-            } else {
+            else
                 continue;
-            }
             break;
         }
 
@@ -990,17 +1018,14 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @return
      */
     public boolean isAdmin() {
-        if (admin) {
+        if (admin)
             return true;
-        }
 
         for (String str : groups) {
             Group group = etc.getDataSource().getGroup(str);
-            if (group != null) {
-                if (group.Administrator) {
+            if (group != null)
+                if (group.Administrator)
                     return true;
-                }
-            }
         }
         return false;
     }
@@ -1029,24 +1054,19 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @return
      */
     public boolean canBuild() {
-        if (canModifyWorld) {
+        if (canModifyWorld)
             return true;
-        }
 
         for (String str : groups) {
             Group group = etc.getDataSource().getGroup(str);
-            if (group != null) {
-                if (group.CanModifyWorld) {
+            if (group != null)
+                if (group.CanModifyWorld)
                     return true;
-                }
-            }
         }
 
-        if (hasNoGroups()) {
-            if (etc.getInstance().getDefaultGroup().CanModifyWorld) {
+        if (hasNoGroups())
+            if (etc.getInstance().getDefaultGroup().CanModifyWorld)
                 return true;
-            }
-        }
 
         return false;
     }
@@ -1105,28 +1125,29 @@ public class Player extends HumanEntity implements MessageReceiver {
      */
     public void setGroups(String[] groups) {
         this.groups.clear();
-        for (String s : groups) {
-            if (s.length() > 0) {
+        for (String s : groups)
+            if (s.length() > 0)
                 this.groups.add(s);
-            }
-        }
     }
 
     /**
      * Adds the player to the specified group
      * 
-     * @param group group to add player to
+     * @param group
+     *            group to add player to
      */
     public void addGroup(String group) {
-        this.groups.add(group);
+        groups.add(group);
     }
 
     /**
      * Removes specified group from list of groups
-     * @param group group to remove
+     * 
+     * @param group
+     *            group to remove
      */
     public void removeGroup(String group) {
-        this.groups.remove(group);
+        groups.remove(group);
     }
 
     /**
@@ -1154,17 +1175,14 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @return
      */
     public boolean canIgnoreRestrictions() {
-        if (admin || ignoreRestrictions) {
+        if (admin || ignoreRestrictions)
             return true;
-        }
 
         for (String str : groups) {
             Group group = etc.getDataSource().getGroup(str);
-            if (group != null) {
-                if (group.Administrator || group.IgnoreRestrictions) {
+            if (group != null)
+                if (group.Administrator || group.IgnoreRestrictions)
                     return true;
-                }
-            }
         }
         return false;
     }
@@ -1211,16 +1229,13 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @return
      */
     public String getColor() {
-        if (prefix != null) {
-            if (!prefix.equals("")) {
+        if (prefix != null)
+            if (!prefix.equals(""))
                 return "§" + prefix;
-            }
-        }
         if (groups.size() > 0) {
             Group group = etc.getDataSource().getGroup(groups.get(0));
-            if (group != null) {
+            if (group != null)
                 return "§" + group.Prefix;
-            }
         }
         Group def = etc.getInstance().getDefaultGroup();
         return def != null ? "§" + def.Prefix : "";
@@ -1249,7 +1264,7 @@ public class Player extends HumanEntity implements MessageReceiver {
      * 
      * @return
      */
-    public fi getUser() {
+    public OEntityPlayerMP getUser() {
         return getEntity();
     }
 
@@ -1258,18 +1273,17 @@ public class Player extends HumanEntity implements MessageReceiver {
      * 
      * @param er
      */
-    public void setUser(fi player) {
-        this.entity = player;
-        this.inventory = new PlayerInventory(this);
+    public void setUser(OEntityPlayerMP player) {
+        entity = player;
+        inventory = new PlayerInventory(this);
     }
 
     public void teleportTo(double x, double y, double z, float rotation, float pitch) {
-        fi player = getEntity();
-        
+        OEntityPlayerMP player = getEntity();
+
         // If player is in vehicle - eject them before they are teleported.
-        if (player.k != null) {
-            player.e(player.k);
-        }
+        if (player.aE != null)
+            player.b(player.aE);
         player.a.a(x, y, z, rotation, pitch);
     }
 
@@ -1298,12 +1312,10 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @return true if this player is in any group
      */
     public boolean hasNoGroups() {
-        if (groups.isEmpty()) {
+        if (groups.isEmpty())
             return true;
-        }
-        if (groups.size() == 1) {
+        if (groups.size() == 1)
             return groups.get(0).equals("");
-        }
         return false;
     }
 
@@ -1331,16 +1343,17 @@ public class Player extends HumanEntity implements MessageReceiver {
      * @return true if sneaking
      */
     public boolean getSneaking() {
-        return getEntity().al;
+        return getEntity().h;
     }
 
     /**
      * Force this Player to be sneaking or not
      * 
-     * @param sneaking true if sneaking
+     * @param sneaking
+     *            true if sneaking
      */
     public void setSneaking(boolean sneaking) {
-        getEntity().al = sneaking;
+        getEntity().h = sneaking;
     }
 
     /**
@@ -1356,19 +1369,18 @@ public class Player extends HumanEntity implements MessageReceiver {
     /**
      * Tests the given object to see if it equals this object
      * 
-     * @param obj the object to test
+     * @param obj
+     *            the object to test
      * @return true if the two objects match
      */
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
+        if (obj == null)
             return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if (getClass() != obj.getClass())
             return false;
-        }
         final Player other = (Player) obj;
-        return getName().equals( other.getName());
+        return getName().equals(other.getName());
     }
 
     /**
@@ -1379,7 +1391,7 @@ public class Player extends HumanEntity implements MessageReceiver {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 71 * hash + this.id;
+        hash = 71 * hash + id;
         return hash;
     }
 }

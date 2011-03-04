@@ -21,12 +21,12 @@
 public class HitBlox {
 
     private Location player_loc;
-    private double rot_x, rot_y, view_height;
-    private double length, h_length, step;
-    private int range;
-    private double x_offset, y_offset, z_offset;
-    private int last_x, last_y, last_z;
-    private int target_x, target_y, target_z, target_type;
+    private double   rot_x, rot_y, view_height;
+    private double   length, h_length, step;
+    private int      range;
+    private double   x_offset, y_offset, z_offset;
+    private int      last_x, last_y, last_z;
+    private int      target_x, target_y, target_z, target_type;
 
     /**
      * Constructor requiring player, uses default values
@@ -86,9 +86,9 @@ public class HitBlox {
         rot_x = (player_loc.rotX + 90) % 360;
         rot_y = player_loc.rotY * -1;
 
-        target_x = (int) Math.floor(player_loc.x);
-        target_y = (int) Math.floor(player_loc.y + view_height);
-        target_z = (int) Math.floor(player_loc.z);
+        target_x = etc.floor(player_loc.x);
+        target_y = etc.floor(player_loc.y + view_height);
+        target_z = etc.floor(player_loc.z);
         last_x = target_x;
         last_y = target_y;
         last_z = target_z;
@@ -100,7 +100,8 @@ public class HitBlox {
      * @return Block
      */
     public Block getTargetBlock() {
-        while ((getNextBlock() != null) && (getCurBlock().getType() == 0));
+        while ((getNextBlock() != null) && (getCurBlock().getType() == 0))
+            ;
         return getCurBlock();
     }
 
@@ -110,10 +111,10 @@ public class HitBlox {
      * @param type
      */
     public void setTargetBlock(int type) {
-        while ((getNextBlock() != null) && (getCurBlock().getType() == 0));
-        if (getCurBlock() != null) {
+        while ((getNextBlock() != null) && (getCurBlock().getType() == 0))
+            ;
+        if (getCurBlock() != null)
             etc.getServer().setBlockAt(type, target_x, target_y, target_z);
-        }
     }
 
     /**
@@ -123,12 +124,12 @@ public class HitBlox {
      * @return Block
      */
     public Block getFaceBlock() {
-        while ((getNextBlock() != null) && (getCurBlock().getType() == 0));
-        if (getCurBlock() != null) {
+        while ((getNextBlock() != null) && (getCurBlock().getType() == 0))
+            ;
+        if (getCurBlock() != null)
             return getLastBlock();
-        } else {
+        else
             return null;
-        }
     }
 
     /**
@@ -137,10 +138,10 @@ public class HitBlox {
      * @param type
      */
     public void setFaceBlock(int type) {
-        while ((getNextBlock() != null) && (getCurBlock().getType() == 0));
-        if (getCurBlock() != null) {
+        while ((getNextBlock() != null) && (getCurBlock().getType() == 0))
+            ;
+        if (getCurBlock() != null)
             etc.getServer().setBlockAt(type, last_x, last_y, last_z);
-        }
     }
 
     /**
@@ -161,15 +162,14 @@ public class HitBlox {
             x_offset = (h_length * Math.cos(Math.toRadians(rot_x)));
             z_offset = (h_length * Math.sin(Math.toRadians(rot_x)));
 
-            target_x = (int) Math.floor(x_offset + player_loc.x);
-            target_y = (int) Math.floor(y_offset + player_loc.y + view_height);
-            target_z = (int) Math.floor(z_offset + player_loc.z);
+            target_x = etc.floor(x_offset + player_loc.x);
+            target_y = etc.floor(y_offset + player_loc.y + view_height);
+            target_z = etc.floor(z_offset + player_loc.z);
 
         } while ((length <= range) && ((target_x == last_x) && (target_y == last_y) && (target_z == last_z)));
 
-        if (length > range) {
+        if (length > range)
             return null;
-        }
 
         return etc.getServer().getBlockAt(target_x, target_y, target_z);
     }
@@ -180,11 +180,10 @@ public class HitBlox {
      * @return Block
      */
     public Block getCurBlock() {
-        if (length > range) {
+        if (length > range)
             return null;
-        } else {
+        else
             return etc.getServer().getBlockAt(target_x, target_y, target_z);
-        }
     }
 
     /**
@@ -193,9 +192,8 @@ public class HitBlox {
      * @param type
      */
     public void setCurBlock(int type) {
-        if (getCurBlock() != null) {
+        if (getCurBlock() != null)
             etc.getServer().setBlockAt(type, target_x, target_y, target_z);
-        }
     }
 
     /**
@@ -213,8 +211,7 @@ public class HitBlox {
      * @param type
      */
     public void setLastBlock(int type) {
-        if (getLastBlock() != null) {
+        if (getLastBlock() != null)
             etc.getServer().setBlockAt(type, last_x, last_y, last_z);
-        }
     }
 }
