@@ -1,14 +1,11 @@
-import java.io.PrintStream;
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
 public class OEntityList {
-
-    private static Map<String, Class<?>>  a = new HashMap<String, Class<?>>();
-    private static Map<Class<?>, String>  b = new HashMap<Class<?>, String>();
-    private static Map<Integer, Class<?>> c = new HashMap<Integer, Class<?>>();
-    private static Map<Class<?>, Integer> d = new HashMap<Class<?>, Integer>();
+    private static Map a = new HashMap();
+    private static Map b = new HashMap();
+    private static Map c = new HashMap();
+    private static Map d = new HashMap();
 
     private static void a(Class paramClass, String paramString, int paramInt) {
         a.put(paramString, paramClass);
@@ -21,9 +18,8 @@ public class OEntityList {
         OEntity localOEntity = null;
         try {
             Class localClass = (Class) a.get(paramString);
-            if (localClass != null) {
+            if (localClass != null)
                 localOEntity = (OEntity) localClass.getConstructor(new Class[] { OWorld.class }).newInstance(new Object[] { paramOWorld });
-            }
         } catch (Exception localException) {
             localException.printStackTrace();
         }
@@ -34,17 +30,15 @@ public class OEntityList {
         OEntity localOEntity = null;
         try {
             Class localClass = (Class) a.get(paramONBTTagCompound.i("id"));
-            if (localClass != null) {
+            if (localClass != null)
                 localOEntity = (OEntity) localClass.getConstructor(new Class[] { OWorld.class }).newInstance(new Object[] { paramOWorld });
-            }
         } catch (Exception localException) {
             localException.printStackTrace();
         }
-        if (localOEntity != null) {
+        if (localOEntity != null)
             localOEntity.e(paramONBTTagCompound);
-        } else {
+        else
             System.out.println("Skipping Entity with id " + paramONBTTagCompound.i("id"));
-        }
         return localOEntity;
     }
 
@@ -55,10 +49,9 @@ public class OEntityList {
     public static String b(OEntity paramOEntity) {
         return (String) b.get(paramOEntity.getClass());
     }
-
-    // hMod: Let us do a name->class lookup for mob spawning
+ // hMod: Let us do a name->class lookup for mob spawning
     public static Class<?> getEntity(String name) {
-        return a.get(name);
+        return (Class<?>) a.get(name);
     }
 
     static {
@@ -84,6 +77,7 @@ public class OEntityList {
         a(OEntityCow.class, "Cow", 92);
         a(OEntityChicken.class, "Chicken", 93);
         a(OEntitySquid.class, "Squid", 94);
+        a(OEntityWolf.class, "Wolf", 95);
 
         a(OEntityTNTPrimed.class, "PrimedTnt", 20);
         a(OEntityFallingSand.class, "FallingSand", 21);

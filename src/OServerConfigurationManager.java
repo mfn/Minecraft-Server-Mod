@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+
 import net.minecraft.server.MinecraftServer;
 
 public class OServerConfigurationManager {
@@ -57,7 +58,7 @@ public class OServerConfigurationManager {
     }
 
     public void a(OWorldServer paramOWorldServer) {
-        n = paramOWorldServer.m().d();
+        n = paramOWorldServer.o().d();
     }
 
     public int a() {
@@ -68,11 +69,10 @@ public class OServerConfigurationManager {
         b.add(paramOEntityPlayerMP);
         n.b(paramOEntityPlayerMP);
 
-        c.e.u.d((int) paramOEntityPlayerMP.aJ >> 4, (int) paramOEntityPlayerMP.aL >> 4);
+        c.e.u.c((int) paramOEntityPlayerMP.aK >> 4, (int) paramOEntityPlayerMP.aM >> 4);
 
-        while (c.e.a(paramOEntityPlayerMP, paramOEntityPlayerMP.aT).size() != 0) {
-            paramOEntityPlayerMP.a(paramOEntityPlayerMP.aJ, paramOEntityPlayerMP.aK + 1.0D, paramOEntityPlayerMP.aL);
-        }
+        while (c.e.a(paramOEntityPlayerMP, paramOEntityPlayerMP.aU).size() != 0)
+            paramOEntityPlayerMP.a(paramOEntityPlayerMP.aK, paramOEntityPlayerMP.aL + 1.0D, paramOEntityPlayerMP.aM);
         c.e.a(paramOEntityPlayerMP);
         d.a(paramOEntityPlayerMP);
         // hMod: Handle login (send MOTD and call hook)
@@ -134,10 +134,9 @@ public class OServerConfigurationManager {
         }
 
         for (int i1 = 0; i1 < b.size(); i1++) {
-            OEntityPlayerMP localOEntityPlayerMP = (OEntityPlayerMP) b.get(i1);
-            if (localOEntityPlayerMP.r.equalsIgnoreCase(paramString1)) {
+            OEntityPlayerMP localOEntityPlayerMP = b.get(i1);
+            if (localOEntityPlayerMP.r.equalsIgnoreCase(paramString1))
                 localOEntityPlayerMP.a.a("You logged in from another location");
-            }
         }
 
         // hMod: user passed basic login check, inform plugins.
@@ -193,25 +192,36 @@ public class OServerConfigurationManager {
         b.remove(paramOEntityPlayerMP);
         c.e.e(paramOEntityPlayerMP);
 
+        OChunkCoordinates localOChunkCoordinates1 = paramOEntityPlayerMP.H();
+        
         OEntityPlayerMP localOEntityPlayerMP = new OEntityPlayerMP(c, c.e, paramOEntityPlayerMP.r, new OItemInWorldManager(c.e));
-        localOEntityPlayerMP.aA = paramOEntityPlayerMP.aA;
+        localOEntityPlayerMP.aB = paramOEntityPlayerMP.aB;
         localOEntityPlayerMP.a = paramOEntityPlayerMP.a;
 
-        c.e.u.d((int) localOEntityPlayerMP.aJ >> 4, (int) localOEntityPlayerMP.aL >> 4);
+        if (localOChunkCoordinates1 != null) {
+            OChunkCoordinates localOChunkCoordinates2 = OEntityPlayer.a(c.e, localOChunkCoordinates1);
+            if (localOChunkCoordinates2 != null) {
+                localOEntityPlayerMP.c(localOChunkCoordinates2.a + 0.5F, localOChunkCoordinates2.b + 0.1F, localOChunkCoordinates2.c + 0.5F, 0.0F, 0.0F);
+                localOEntityPlayerMP.a(localOChunkCoordinates1);
+            } else
+                localOEntityPlayerMP.a.b(new OPacket70(0));
 
-        while (c.e.a(localOEntityPlayerMP, localOEntityPlayerMP.aT).size() != 0) {
-            localOEntityPlayerMP.a(localOEntityPlayerMP.aJ, localOEntityPlayerMP.aK + 1.0D, localOEntityPlayerMP.aL);
         }
 
+        c.e.u.c((int) localOEntityPlayerMP.aK >> 4, (int) localOEntityPlayerMP.aM >> 4);
+
+        while (c.e.a(localOEntityPlayerMP, localOEntityPlayerMP.aU).size() != 0)
+            localOEntityPlayerMP.a(localOEntityPlayerMP.aK, localOEntityPlayerMP.aL + 1.0D, localOEntityPlayerMP.aM);
+
         localOEntityPlayerMP.a.b(new OPacket9());
-        localOEntityPlayerMP.a.a(localOEntityPlayerMP.aJ, localOEntityPlayerMP.aK, localOEntityPlayerMP.aL, localOEntityPlayerMP.aP, localOEntityPlayerMP.aQ);
+        localOEntityPlayerMP.a.a(localOEntityPlayerMP.aK, localOEntityPlayerMP.aL, localOEntityPlayerMP.aM, localOEntityPlayerMP.aQ, localOEntityPlayerMP.aR);
 
         d.a(localOEntityPlayerMP);
         c.e.a(localOEntityPlayerMP);
         b.add(localOEntityPlayerMP);
 
-        localOEntityPlayerMP.l();
-        localOEntityPlayerMP.s();
+        localOEntityPlayerMP.m();
+        localOEntityPlayerMP.t();
         return localOEntityPlayerMP;
     }
 
@@ -233,9 +243,8 @@ public class OServerConfigurationManager {
     public String c() {
         String str = "";
         for (int i1 = 0; i1 < b.size(); i1++) {
-            if (i1 > 0) {
+            if (i1 > 0)
                 str = str + ", ";
-            }
             str = str + b.get(i1).r;
         }
         return str;
@@ -256,9 +265,8 @@ public class OServerConfigurationManager {
             f.clear();
             BufferedReader localBufferedReader = new BufferedReader(new FileReader(j));
             String str = "";
-            while ((str = localBufferedReader.readLine()) != null) {
+            while ((str = localBufferedReader.readLine()) != null)
                 f.add(str.trim().toLowerCase());
-            }
             localBufferedReader.close();
         } catch (Exception localException) {
             a.warning("Failed to load ban list: " + localException);
@@ -302,9 +310,8 @@ public class OServerConfigurationManager {
     private void j() {
         try {
             PrintWriter localPrintWriter = new PrintWriter(new FileWriter(k, false));
-            for (String str : g) {
+            for (String str : g)
                 localPrintWriter.println(str);
-            }
             localPrintWriter.close();
         } catch (Exception localException) {
             a.warning("Failed to save ip ban list: " + localException);
@@ -326,9 +333,8 @@ public class OServerConfigurationManager {
             h.clear();
             BufferedReader localBufferedReader = new BufferedReader(new FileReader(l));
             String str = "";
-            while ((str = localBufferedReader.readLine()) != null) {
+            while ((str = localBufferedReader.readLine()) != null)
                 h.add(str.trim().toLowerCase());
-            }
             localBufferedReader.close();
         } catch (Exception localException) {
             a.warning("Failed to load ip ban list: " + localException);
@@ -338,9 +344,8 @@ public class OServerConfigurationManager {
     private void l() {
         try {
             PrintWriter localPrintWriter = new PrintWriter(new FileWriter(l, false));
-            for (String str : h) {
+            for (String str : h)
                 localPrintWriter.println(str);
-            }
             localPrintWriter.close();
         } catch (Exception localException) {
             a.warning("Failed to save ip ban list: " + localException);
@@ -352,9 +357,8 @@ public class OServerConfigurationManager {
             i.clear();
             BufferedReader localBufferedReader = new BufferedReader(new FileReader(m));
             String str = "";
-            while ((str = localBufferedReader.readLine()) != null) {
+            while ((str = localBufferedReader.readLine()) != null)
                 i.add(str.trim().toLowerCase());
-            }
             localBufferedReader.close();
         } catch (Exception localException) {
             a.warning("Failed to load white-list: " + localException);
@@ -364,9 +368,8 @@ public class OServerConfigurationManager {
     private void n() {
         try {
             PrintWriter localPrintWriter = new PrintWriter(new FileWriter(m, false));
-            for (String str : i) {
+            for (String str : i)
                 localPrintWriter.println(str);
-            }
             localPrintWriter.close();
         } catch (Exception localException) {
             a.warning("Failed to save white-list: " + localException);
@@ -385,39 +388,35 @@ public class OServerConfigurationManager {
     public OEntityPlayerMP i(String paramString) {
         for (int i1 = 0; i1 < b.size(); i1++) {
             OEntityPlayerMP localOEntityPlayerMP = b.get(i1);
-            if (localOEntityPlayerMP.r.equalsIgnoreCase(paramString)) {
+            if (localOEntityPlayerMP.r.equalsIgnoreCase(paramString))
                 return localOEntityPlayerMP;
-            }
         }
         return null;
     }
 
     public void a(String paramString1, String paramString2) {
         OEntityPlayerMP localOEntityPlayerMP = i(paramString1);
-        if (localOEntityPlayerMP != null) {
+        if (localOEntityPlayerMP != null)
             localOEntityPlayerMP.a.b(new OPacket3Chat(paramString2));
-        }
     }
 
     public void a(double paramDouble1, double paramDouble2, double paramDouble3, double paramDouble4, OPacket paramOPacket) {
         for (int i1 = 0; i1 < b.size(); i1++) {
             OEntityPlayerMP localOEntityPlayerMP = b.get(i1);
-            double d1 = paramDouble1 - localOEntityPlayerMP.aJ;
-            double d2 = paramDouble2 - localOEntityPlayerMP.aK;
-            double d3 = paramDouble3 - localOEntityPlayerMP.aL;
-            if (d1 * d1 + d2 * d2 + d3 * d3 < paramDouble4 * paramDouble4) {
+            double d1 = paramDouble1 - localOEntityPlayerMP.aK;
+            double d2 = paramDouble2 - localOEntityPlayerMP.aL;
+            double d3 = paramDouble3 - localOEntityPlayerMP.aM;
+            if (d1 * d1 + d2 * d2 + d3 * d3 < paramDouble4 * paramDouble4)
                 localOEntityPlayerMP.a.b(paramOPacket);
-            }
         }
     }
 
     public void j(String paramString) {
         OPacket3Chat localOPacket3Chat = new OPacket3Chat(paramString);
         for (int i1 = 0; i1 < b.size(); i1++) {
-            OEntityPlayerMP localOEntityPlayerMP = (OEntityPlayerMP) b.get(i1);
-            if (h(localOEntityPlayerMP.r)) {
+            OEntityPlayerMP localOEntityPlayerMP = b.get(i1);
+            if (h(localOEntityPlayerMP.r))
                 localOEntityPlayerMP.a.b(localOPacket3Chat);
-            }
         }
     }
 
@@ -431,9 +430,8 @@ public class OServerConfigurationManager {
     }
 
     public void d() {
-        for (int i1 = 0; i1 < b.size(); i1++) {
-            n.a((OEntityPlayer) b.get(i1));
-        }
+        for (int i1 = 0; i1 < b.size(); i1++)
+            n.a(b.get(i1));
     }
 
     public void a(int paramInt1, int paramInt2, int paramInt3, OTileEntity paramOTileEntity) {
